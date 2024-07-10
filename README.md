@@ -20,5 +20,11 @@ Scenario simulation used for cage challenge 4 with Kathara
 ## check install:
 `kathara check`
 
-# Scenario launch
+# Start Scenario
 `python3 simu.py`
+
+# Watch traffic
+`http.//localhost:3000/`
+
+# Stop Scenario
+`python3 stopsimu.py`
