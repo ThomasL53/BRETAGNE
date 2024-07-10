@@ -24,7 +24,7 @@ Scenario simulation used for cage challenge 4 with Kathara
 `python3 simu.py`
 
 # Watch traffic
-`http.//localhost:3000/`
+`http://localhost:3000/`
 
 # Stop Scenario
 `python3 stopsimu.py`
