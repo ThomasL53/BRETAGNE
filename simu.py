@@ -3,12 +3,35 @@ from Kathara.manager.Kathara import Kathara
 import os
 import random
 import ipaddress
+import shutil
 
 wireshark_count=0
 
 if not os.path.exists("simu"):
     os.makedirs("simu")
 lab = Lab("simu","simu")
+
+def add_package():
+    packages_dir="packages"
+    os.makedirs(f"simu/shared/packages", exist_ok=True)
+    for filename in os.listdir(packages_dir):
+        src_path = os.path.join(packages_dir, filename)
+        dst_path = os.path.join(f"simu/shared/packages", filename)
+        shutil.copy(src_path, dst_path)
+
+def add_srv_service_on(SRV):
+    lab.update_file_from_list(
+        [
+            "systemctl start apache2",
+            "apt install ./shared/packages/vsftpd.deb",
+            "systemctl start vsftpd",
+            "systemctl start ssh",
+            "systemctl start named",
+            "systemctl start bind9"
+        ],
+    f"{SRV.name}.startup"
+    )
+
 def create_subnet(name,subnet_addr=None):
     name=name.lower()
     nb_PC=random.randint(3, 10)
@@ -18,16 +41,15 @@ def create_subnet(name,subnet_addr=None):
     network = ipaddress.IPv4Network(subnet_addr)
     ips = []
     gateway=".".join(subnet_addr.rsplit(".", 1)[:-1] + ["254"])
+    add_package()
     for pc in range(1,nb_PC+1):
         PC_name="pc_" + name + str(pc)
         PC = lab.new_machine(PC_name)
         PC_list.append(PC)
-    
     for srv in range(1,nb_SRV+1):
         SRV_name="srv_" + name + str(srv)
         SRV = lab.new_machine(SRV_name)
         SRV_list.append(SRV)
-    
     for i in range(1,nb_PC+nb_SRV+1):
         ip = str(network.network_address + i)
         ips.append(ip)
@@ -39,10 +61,22 @@ def create_subnet(name,subnet_addr=None):
         lab.create_file_from_list(
             [
                 f"/sbin/ifconfig eth0 {ips[i]}/24 up",
-                f"route add default gw {gateway}"
+                f"route add default gw {gateway}",
+                "apt install ./shared/packages/ftp.deb"
             ],
         f"{machine.name}.startup"
         )
+        if "srv" in machine.name:
+            file_path="simu/srv_iplist"
+            if os.path.exists(file_path):
+                with open(file_path, "a") as file:
+                    file.write( ips[i] + "\n")
+            else:
+                with open(file_path, "w") as file:
+                    file.write( ips[i] + "\n")
+    
+    for SRV in SRV_list:
+        add_srv_service_on(SRV)
 
 def deploy_wireshark_on(network):
     wireshark=lab.new_machine(f"wireshark_{network.lower()}", **{"image": "lscr.io/linuxserver/wireshark"})
