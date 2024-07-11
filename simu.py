@@ -4,6 +4,8 @@ import os
 import random
 import ipaddress
 
+wireshark_count=0
+
 if not os.path.exists("simu"):
     os.makedirs("simu")
 lab = Lab("simu","simu")
@@ -42,10 +44,19 @@ def create_subnet(name,subnet_addr=None):
         f"{machine.name}.startup"
         )
 
-wireshark_on=lab.new_machine("wireshark_on", **{"image": "lscr.io/linuxserver/wireshark"})
-lab.connect_machine_to_link(wireshark_on.name, "ON")
-test=wireshark_on.add_meta("bridged","true")
-test=wireshark_on.add_meta("port","3000:3000/tcp")
+def deploy_wireshark_on(network):
+    wireshark=lab.new_machine(f"wireshark_{network.lower()}", **{"image": "lscr.io/linuxserver/wireshark"})
+    lab.connect_machine_to_link(wireshark.name, network)
+    wireshark.add_meta("bridged","true")
+    wireshark.add_meta("port",f"300{wireshark_count}:300{wireshark_count}/tcp")
+
+def configure_frr_on(router):
+    router.create_file_from_path(os.path.join("config", f"{router.name}.conf"), "/etc/frr/frr.conf")
+    router.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
+    router.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
+    router.update_file_from_string(content=f"hostname {router.name}\n", dst_path="/etc/frr/vtysh.conf")
+
+
 # Configure and create fw_ra
 fw_ra=lab.new_machine("fw_ra", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -58,10 +69,7 @@ lab.create_file_from_list(
     "fw_ra.startup"
 )
 # Configure frr on fw_ra
-fw_ra.create_file_from_path(os.path.join("config", "fw_ra.conf"), "/etc/frr/frr.conf")
-fw_ra.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_ra.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_ra.update_file_from_string(content="hostname fw_ra\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_ra)
 # Configure and create fw_oa
 fw_oa=lab.new_machine("fw_oa", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -73,10 +81,7 @@ lab.create_file_from_list(
     "fw_oa.startup"
 )
 # Configure frr on fw_oa
-fw_oa.create_file_from_path(os.path.join("config", "fw_oa.conf"), "/etc/frr/frr.conf")
-fw_oa.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_oa.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_oa.update_file_from_string(content="hostname fw_oa\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_oa)
 # Configure and create fw_rb
 fw_rb=lab.new_machine("fw_rb", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -89,10 +94,7 @@ lab.create_file_from_list(
     "fw_rb.startup"
 )
 # Configure frr on fw_rb
-fw_rb.create_file_from_path(os.path.join("config", "fw_rb.conf"), "/etc/frr/frr.conf")
-fw_rb.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_rb.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_rb.update_file_from_string(content="hostname fw_rb\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_rb)
 # Configure and create fw_ob
 fw_ob=lab.new_machine("fw_ob", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -104,10 +106,7 @@ lab.create_file_from_list(
     "fw_ob.startup"
 )
 # Configure frr on fw_ob
-fw_ob.create_file_from_path(os.path.join("config", "fw_ob.conf"), "/etc/frr/frr.conf")
-fw_ob.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_ob.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_ob.update_file_from_string(content="hostname fw_ob\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_ob)
 # Configure and create fw_cn
 fw_cn=lab.new_machine("fw_cn", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -119,10 +118,7 @@ lab.create_file_from_list(
     "fw_cn.startup"
 )
 # Configure frr on fw_cn
-fw_cn.create_file_from_path(os.path.join("config", "fw_cn.conf"), "/etc/frr/frr.conf")
-fw_cn.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_cn.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_cn.update_file_from_string(content="hostname fw_cn\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_cn)
 # Configure and create fw_dmz
 fw_dmz=lab.new_machine("fw_dmz", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -134,10 +130,7 @@ lab.create_file_from_list(
     "fw_dmz.startup"
 )
 # Configure frr on fw_dmz
-fw_dmz.create_file_from_path(os.path.join("config", "fw_dmz.conf"), "/etc/frr/frr.conf")
-fw_dmz.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_dmz.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_dmz.update_file_from_string(content="hostname fw_dmz\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_dmz)
 # Configure and create fw_AN
 fw_an=lab.new_machine("fw_an", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -149,10 +142,7 @@ lab.create_file_from_list(
     "fw_an.startup"
 )
 # Configure frr on fw_AN
-fw_an.create_file_from_path(os.path.join("config", "fw_an.conf"), "/etc/frr/frr.conf")
-fw_an.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_an.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_an.update_file_from_string(content="hostname fw_an\n", dst_path="/etc/frr/vtysh.conf")
+configure_frr_on(fw_an)
 # Configure and create fw_OFN
 fw_ofn=lab.new_machine("fw_ofn", **{"image": "kathara/frr"})
 lab.create_file_from_list(
@@ -164,11 +154,7 @@ lab.create_file_from_list(
     "fw_ofn.startup"
 )
 # Configure frr on fw_ofn
-fw_ofn.create_file_from_path(os.path.join("config", "fw_ofn.conf"), "/etc/frr/frr.conf")
-fw_ofn.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-fw_ofn.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-fw_ofn.update_file_from_string(content="hostname fw_ofn\n", dst_path="/etc/frr/vtysh.conf")
-
+configure_frr_on(fw_ofn)
 
 #deployed network A
 create_subnet("RA","1.1.1.0")
@@ -208,5 +194,7 @@ lab.connect_machine_to_link(fw_an.name, "DMZ")
 
 lab.connect_machine_to_link(fw_ofn.name, "OFN")
 lab.connect_machine_to_link(fw_ofn.name, "DMZ")
+
+deploy_wireshark_on("ON")
 
 Kathara.get_instance().deploy_lab(lab)
