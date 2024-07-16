@@ -8,7 +8,6 @@ import time
 directory = "simu"
 ip_srvlist = []
 
-
 def get_machine_names(directory):
     machine_names = []
     for filename in os.listdir(directory):
@@ -16,7 +15,6 @@ def get_machine_names(directory):
             machine_name = filename.split(".")[0]
             machine_names.append(machine_name)
     return machine_names
-
 
 def get_ip_addresses(directory):
     ip_addresses = []
@@ -68,20 +66,19 @@ def generate_dhcp(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'dhcp-lease-querry -s {random.choice(ip_srvlist)} ', lab_name="simu")
 
-
-
 machine_list = get_machine_names(directory)
 ip_addresses = get_ip_addresses(directory)
 ip_srvlist = get_srv_ip()
-actions= [generate_dhcp,generate_dns,generate_ftp,generate_ping,generate_ssh,generate_www]
-nb_iterations = 20
 
-for _ in range(nb_iterations):
-    random_action = random.choice(actions)
-    random_nb_connexion = random.randint(1, 20)
+def start(nb_iterations=20):
+    actions= [generate_dhcp,generate_dns,generate_ftp,generate_ping,generate_ssh,generate_www]
 
-    random_action(random_nb_connexion)
+    for _ in range(nb_iterations):
+        random_action = random.choice(actions)
+        random_nb_connexion = random.randint(1, 20)
 
-    #random sleep 1s to 5s
-    temps_attente = random.uniform(1, 5)
-    time.sleep(temps_attente)
+        random_action(random_nb_connexion)
+
+        #random sleep 1s to 5s
+        temps_attente = random.uniform(1, 5)
+        time.sleep(temps_attente)
