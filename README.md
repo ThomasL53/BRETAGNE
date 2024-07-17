@@ -20,6 +20,13 @@ Scenario simulation used for cage challenge 4 with Kathara
 
 `newgrp docker`
 
+### Debug Docker
+If docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory')) occurs.
+
+`apt install docker.io`
+
+In ~/.docker/config.json change credsStore to credStore.
+
 ## check install:
 `kathara check`
 
