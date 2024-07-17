@@ -8,6 +8,9 @@ Scenario simulation used for cage challenge 4 with Kathara
 `sudo add-apt-repository ppa:katharaframework/kathara`
 
 `sudo apt update`
+
+`sudo apt install kathara`
+
 ## Manage Docker as a non-root user
 `sudo add-apt-repository ppa:katharaframework/kathara`
 
