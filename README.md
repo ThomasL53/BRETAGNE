@@ -37,4 +37,27 @@ Source or add to bashrc the env.sh file
 For more help
 `bretagne -h`
 
+# Example of use
+Starting a simulation with wireshark on the Operator Network (ON) and DMZ:
+
+`bretagne --start --wireshark ON DMZ`
+
+Starting a simulation with wireshark and metasploit on the Operator Network (ON):
+
+`bretagne --start --wireshark ON --metasploit ON`
+
+Open a terminal on pc_ra1:
+
+`bretagne --control pc_ra1`
+
+Generating user traffic on the network:
+
+`bretagne --generate_traffic 10`
+
+Stop the simulation:
+`bretagne --stop`
+
+
+
+
 
