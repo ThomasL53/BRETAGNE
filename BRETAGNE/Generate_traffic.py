@@ -1,4 +1,3 @@
-from Kathara.model.Lab import Lab
 from Kathara.manager.Kathara import Kathara
 import os
 import random
@@ -7,6 +6,7 @@ import time
 
 directory = "simu"
 ip_srvlist = []
+
 
 def get_machine_names(directory):
     machine_names = []
@@ -66,13 +66,17 @@ def generate_dhcp(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'dhcp-lease-querry -s {random.choice(ip_srvlist)} ', lab_name="simu")
 
-machine_list = get_machine_names(directory)
-ip_addresses = get_ip_addresses(directory)
-ip_srvlist = get_srv_ip()
+
 
 def start(nb_iterations=20):
     actions= [generate_dhcp,generate_dns,generate_ftp,generate_ping,generate_ssh,generate_www]
+    global machine_list
+    global ip_addresses
+    global ip_srvlist
 
+    machine_list = get_machine_names(directory)
+    ip_addresses = get_ip_addresses(directory)
+    ip_srvlist = get_srv_ip()
     for _ in range(nb_iterations):
         random_action = random.choice(actions)
         random_nb_connexion = random.randint(1, 20)

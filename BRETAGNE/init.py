@@ -3,18 +3,16 @@ import os
 import random
 import ipaddress
 import shutil
-from Kathara.model.Lab import Lab
 
-lab = Kathara.get_instance().get_lab_from_api(lab_name="simu")
 
-def add_wireshark_on(network, wireshark_count):
+def add_wireshark_on(network, wireshark_count,lab):
     print(f"Add wireshark_{network.lower()} to network {network.upper()}. Observe traffic at http://localhost:300{wireshark_count}")
     wireshark=lab.new_machine(f"wireshark_{network.lower()}", **{"image": "lscr.io/linuxserver/wireshark"})
     lab.connect_machine_to_link(wireshark.name, network.upper())
     wireshark.add_meta("bridged","true")
     wireshark.add_meta("port",f"300{wireshark_count}:3000/tcp")
 
-def add_metasploit_on(network):
+def add_metasploit_on(network,lab):
     print(f"Add metasploit_{network.lower()} to network {network.upper()}")
     redagent=lab.new_machine(f"metasploit_{network.lower()}", **{"image": "metasploitframework/metasploit-framework"})
     lab.connect_machine_to_link(redagent.name, network)
@@ -27,7 +25,7 @@ def add_package():
         dst_path = os.path.join(f"simu/shared/packages", filename)
         shutil.copy(src_path, dst_path)
 
-def add_srv_service_on(SRV):
+def add_srv_service_on(SRV,lab):
     lab.update_file_from_list(
         [
             "systemctl start apache2",
@@ -40,7 +38,7 @@ def add_srv_service_on(SRV):
     f"{SRV.name}.startup"
     )
 
-def create_subnet(name,subnet_addr=None):
+def create_subnet(name,lab,subnet_addr=None):
     name=name.lower()
     nb_PC=random.randint(3, 10)
     PC_list=[]
@@ -84,7 +82,7 @@ def create_subnet(name,subnet_addr=None):
                     file.write( ips[i] + "\n")
     
     for SRV in SRV_list:
-        add_srv_service_on(SRV)
+        add_srv_service_on(SRV, lab)
 
 def configure_frr_on(router):
     router.create_file_from_path(os.path.join("config", f"{router.name}.conf"), "/etc/frr/frr.conf")
@@ -92,7 +90,7 @@ def configure_frr_on(router):
     router.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
     router.update_file_from_string(content=f"hostname {router.name}\n", dst_path="/etc/frr/vtysh.conf")
 
-def create_network():
+def create_network(lab):
     print("Creation of the scenario")
  # Configure and create fw_ra
     fw_ra=lab.new_machine("fw_ra", **{"image": "kathara/frr"})
@@ -194,17 +192,17 @@ def create_network():
     configure_frr_on(fw_ofn)
 
     #deployed network A
-    create_subnet("RA","1.1.1.0")
-    create_subnet("OA","1.1.2.0")
+    create_subnet("RA",lab,"1.1.1.0")
+    create_subnet("OA",lab,"1.1.2.0")
     #deployed network B
-    create_subnet("RB","1.2.1.0")
-    create_subnet("OB","1.2.2.0")
+    create_subnet("RB",lab,"1.2.1.0")
+    create_subnet("OB",lab,"1.2.2.0")
     #Contractor network
-    create_subnet("CN","192.168.1.0")
+    create_subnet("CN",lab,"192.168.1.0")
     #HQ network and Public services
-    create_subnet("DMZ","100.100.0.0")
-    create_subnet("AN","100.100.1.0")
-    create_subnet("OFN","100.100.2.0")
+    create_subnet("DMZ",lab,"100.100.0.0")
+    create_subnet("AN",lab,"100.100.1.0")
+    create_subnet("OFN",lab,"100.100.2.0")
 
     lab.connect_machine_to_link(fw_ra.name, "RA")
     lab.connect_machine_to_link(fw_ra.name, "A")
@@ -232,7 +230,7 @@ def create_network():
     lab.connect_machine_to_link(fw_ofn.name, "OFN")
     lab.connect_machine_to_link(fw_ofn.name, "DMZ")
 
-def start():
+def start(lab):
     print("Start simulation")
     Kathara.get_instance().deploy_lab(lab)
     print("done !")
