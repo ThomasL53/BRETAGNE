@@ -20,11 +20,19 @@ Scenario simulation used for cage challenge 4 with Kathara
 ## check install:
 `kathara check`
 
-# Start Scenario
-`python3 simu.py`
+# Install Python API
+`python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv`
 
-# Watch traffic
-`http://localhost:3000/`
+`python3 -m pip install "kathara"`
 
-# Stop Scenario
-`python3 stopsimu.py`
+# Download and install BRETAGNE
+`git clone https://github.com/ThomasL53/BRETAGNE.git`
+
+go to BRETAGNE directory
+`cd BRETAGNE`
+
+Source or add to bashrc the env.sh file
+`source env.sh`
+
+For more help
+`bretagne -h`
