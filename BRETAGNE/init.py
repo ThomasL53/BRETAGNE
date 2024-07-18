@@ -3,6 +3,8 @@ import os
 import random
 import ipaddress
 import shutil
+from yaspin import yaspin
+from yaspin.spinners import Spinners
 
 
 def add_wireshark_on(network, wireshark_count,lab):
@@ -231,6 +233,12 @@ def create_network(lab):
     lab.connect_machine_to_link(fw_ofn.name, "DMZ")
 
 def start(lab):
-    print("Start simulation")
-    Kathara.get_instance().deploy_lab(lab)
-    print("done !")
+    with yaspin(Spinners.dots, text="Starting the simulation...") as spinner:
+        try:
+            Kathara.get_instance().deploy_lab(lab)
+            spinner.text = ""
+            spinner.ok("✔ Simulation started successfully!")
+        except Exception as e:
+            spinner.text = "✘ Simulation start failed!"
+            spinner.fail("✘ Simulation start failed!")
+            print(f"Error starting the simulation: {e}")
