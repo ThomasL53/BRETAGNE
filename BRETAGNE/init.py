@@ -55,7 +55,7 @@ def add_SDN_switch(name,subnet_count,lab):
     return OvS
 
 def add_SDN_comtroller(lab):
-    controller=lab.new_machine("controller", **{"image": "floodlight"})
+    controller=lab.new_machine("controller", **{"image": "thomasl53/bretagne_floodlight"})
     lab.connect_machine_to_link(controller.name,"SDN")
     lab.create_file_from_list(
         [
