@@ -13,6 +13,7 @@ def stop():
             spinner.text = ""
             spinner.ok("✔ Simulation stopped successfully!")
         except Exception as e:
-            spinner.text = "✘ Simulation stop failed!"
-            spinner.fail("✘ Simulation stop failed!")
-            print(f"Error stopping the simulation: {e}")
+            pass
+            #spinner.text = "✘ Simulation stop failed!"
+            #spinner.fail("✘ Simulation stop failed!")
+            #print(f"Error stopping the simulation: {e}")

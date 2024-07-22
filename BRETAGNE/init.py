@@ -40,7 +40,35 @@ def add_srv_service_on(SRV,lab):
     f"{SRV.name}.startup"
     )
 
-def create_subnet(name,lab,subnet_addr=None):
+def add_SDN_switch(name,subnet_count,lab):
+    OvS=lab.new_machine(f"ovs_{name}", **{"image":"thomasl53/bretagne_ovs:1.0"})
+    lab.connect_machine_to_link(OvS.name,"SDN")
+    lab.create_file_from_list(
+        [
+            f"ip addr add 20.0.1.{subnet_count}/24 dev eth0",
+            "/usr/share/openvswitch/scripts/ovs-ctl --system-id=random start",
+            "ovs-vsctl add-br s1",
+            "ovs-vsctl set-controller s1 tcp:20.0.1.254:6653"
+        ],
+        f"ovs_{name}.startup"
+    )
+    return OvS
+
+def add_SDN_comtroller(lab):
+    controleur=lab.new_machine("controler", **{"image": "floodlight"})
+    lab.connect_machine_to_link(controleur.name,"SDN")
+    lab.create_file_from_list(
+        [
+            "ip addr add 20.0.1.254/24 dev eth0"
+        ],
+        "controleur.startup"
+        )
+    controleur.add_meta("bridged","true")
+    controleur.add_meta("port",f"8080:8080/tcp")
+    print("Add controlleur floodlight to network SDN. Manage SDN at http://localhost:8080/ui/pages/index.html")
+
+def create_subnet(name,lab,subnet_count,subnet_addr=None):
+    eth=1
     name=name.lower()
     nb_PC=random.randint(3, 10)
     PC_list=[]
@@ -50,10 +78,21 @@ def create_subnet(name,lab,subnet_addr=None):
     ips = []
     gateway=".".join(subnet_addr.rsplit(".", 1)[:-1] + ["254"])
     add_package()
+    OvS=add_SDN_switch(name,subnet_count,lab)
     for pc in range(1,nb_PC+1):
         PC_name="pc_" + name + str(pc)
         PC = lab.new_machine(PC_name)
+        lab.connect_machine_to_link(PC.name,(name+PC.name).upper())
+        lab.connect_machine_to_link(OvS.name,(name+PC.name).upper())
+        lab.update_file_from_list(
+            [
+                f"ovs-vsctl add-port s1 eth{eth}"
+            ],
+            f"ovs_{name}.startup"
+        )
+        eth=eth+1
         PC_list.append(PC)
+
     for srv in range(1,nb_SRV+1):
         SRV_name="srv_" + name + str(srv)
         SRV = lab.new_machine(SRV_name)
@@ -85,6 +124,14 @@ def create_subnet(name,lab,subnet_addr=None):
     
     for SRV in SRV_list:
         add_srv_service_on(SRV, lab)
+    #connecting the last switch port to the router 
+    lab.connect_machine_to_link(OvS.name,name.upper())
+    lab.update_file_from_list(
+        [
+            f"ovs-vsctl add-port s1 eth{eth}"
+        ],
+        f"ovs_{name}.startup"
+    )
 
 def configure_frr_on(router):
     router.create_file_from_path(os.path.join("config", f"{router.name}.conf"), "/etc/frr/frr.conf")
@@ -93,6 +140,7 @@ def configure_frr_on(router):
     router.update_file_from_string(content=f"hostname {router.name}\n", dst_path="/etc/frr/vtysh.conf")
 
 def create_network(lab):
+    subnet_count=1
     print("Creation of the scenario")
  # Configure and create fw_ra
     fw_ra=lab.new_machine("fw_ra", **{"image": "kathara/frr"})
@@ -194,17 +242,25 @@ def create_network(lab):
     configure_frr_on(fw_ofn)
 
     #deployed network A
-    create_subnet("RA",lab,"1.1.1.0")
-    create_subnet("OA",lab,"1.1.2.0")
+    create_subnet("RA",lab,subnet_count,"1.1.1.0")
+    subnet_count=subnet_count+1
+    create_subnet("OA",lab,subnet_count,"1.1.2.0")
+    subnet_count=subnet_count+1
     #deployed network B
-    create_subnet("RB",lab,"1.2.1.0")
-    create_subnet("OB",lab,"1.2.2.0")
+    create_subnet("RB",lab,subnet_count,"1.2.1.0")
+    subnet_count=subnet_count+1
+    create_subnet("OB",lab,subnet_count,"1.2.2.0")
+    subnet_count=subnet_count+1
     #Contractor network
-    create_subnet("CN",lab,"192.168.1.0")
+    create_subnet("CN",lab,subnet_count,"192.168.1.0")
+    subnet_count=subnet_count+1
     #HQ network and Public services
-    create_subnet("DMZ",lab,"100.100.0.0")
-    create_subnet("AN",lab,"100.100.1.0")
-    create_subnet("OFN",lab,"100.100.2.0")
+    create_subnet("DMZ",lab,subnet_count,"100.100.0.0")
+    subnet_count=subnet_count+1
+    create_subnet("AN",lab,subnet_count,"100.100.1.0")
+    subnet_count=subnet_count+1
+    create_subnet("OFN",lab,subnet_count,"100.100.2.0")
+    subnet_count=subnet_count+1
 
     lab.connect_machine_to_link(fw_ra.name, "RA")
     lab.connect_machine_to_link(fw_ra.name, "A")
@@ -231,6 +287,7 @@ def create_network(lab):
 
     lab.connect_machine_to_link(fw_ofn.name, "OFN")
     lab.connect_machine_to_link(fw_ofn.name, "DMZ")
+    add_SDN_comtroller(lab)
 
 def start(lab):
     with yaspin(Spinners.dots, text="Starting the simulation...") as spinner:
