@@ -55,17 +55,17 @@ def add_SDN_switch(name,subnet_count,lab):
     return OvS
 
 def add_SDN_comtroller(lab):
-    controleur=lab.new_machine("controler", **{"image": "floodlight"})
-    lab.connect_machine_to_link(controleur.name,"SDN")
+    controller=lab.new_machine("controller", **{"image": "floodlight"})
+    lab.connect_machine_to_link(controller.name,"SDN")
     lab.create_file_from_list(
         [
             "ip addr add 20.0.1.254/24 dev eth0"
         ],
-        "controleur.startup"
+        "controller.startup"
         )
-    controleur.add_meta("bridged","true")
-    controleur.add_meta("port",f"8080:8080/tcp")
-    print("Add controlleur floodlight to network SDN. Manage SDN at http://localhost:8080/ui/pages/index.html")
+    controller.add_meta("bridged","true")
+    controller.add_meta("port",f"8080:8080/tcp")
+    print("Add controller floodlight to network SDN. Manage SDN at http://localhost:8080/ui/pages/index.html")
 
 def create_subnet(name,lab,subnet_count,subnet_addr=None):
     eth=1
