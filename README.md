@@ -31,6 +31,10 @@ In ~/.docker/config.json change credsStore to credStore.
 `kathara check`
 
 # Install Python API
+`sudo apt install python3-pip`
+
+`pip3 install yaspin`
+
 `python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv`
 
 `python3 -m pip install "kathara"`
