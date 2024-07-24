@@ -6,6 +6,24 @@ import shutil
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
+def add_monitoring(network,lab):
+    nbport = 0
+    lab.connect_machine_to_link(f"ovs_{network.lower()}","MNT")
+    with open(f"simu/ovs_{network.lower()}.startup", 'r') as file:
+        for line in file:
+            if 'ovs-vsctl add-port' in line:
+                nbport = nbport +1
+    lab.update_file_from_list(
+        [
+         f"ovs-vsctl add-port s1 eth{nbport+1} -- --id=@p get port eth{nbport+1} -- --id=@m create mirror name=m0 select-all=true output-port=@p -- set bridge s1 mirrors=@m"
+        ],
+    f"ovs_{network.lower}.startup"
+    )
+    os.makedirs(f"simu/shared/script", exist_ok=True)
+    os.makedirs(f"simu/shared/capture", exist_ok=True)
+    src_file = f"script/snif.sh"
+    dst_file = f"simu/shared/script/snif.sh"
+    shutil.copy(src_file, dst_file)
 
 def add_wireshark_on(network, wireshark_count,lab):
     print(f"Add wireshark_{network.lower()} to network {network.upper()}. Observe traffic at http://localhost:300{wireshark_count}")
@@ -288,6 +306,14 @@ def create_network(lab):
     lab.connect_machine_to_link(fw_ofn.name, "OFN")
     lab.connect_machine_to_link(fw_ofn.name, "DMZ")
     add_SDN_comtroller(lab)
+    add_monitoring("RA",lab)
+    add_monitoring("OA",lab)
+    add_monitoring("RB",lab)
+    add_monitoring("OB",lab)
+    add_monitoring("CN",lab)
+    add_monitoring("DMZ",lab)
+    add_monitoring("AN",lab)
+    add_monitoring("OFN",lab)
 
 def start(lab):
     with yaspin(Spinners.dots, text="Starting the simulation...") as spinner:
