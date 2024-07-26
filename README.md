@@ -1,4 +1,4 @@
-# BRETAGNE ( Best Resilient Emulator for Training AI and Generate Network Environement ) 
+# BRETAGNE ( Best Resilient Emulator for Training AI and Generate Network Environment ) 
 Scenario simulation used for cage challenge 4 with Kathara
 
 
