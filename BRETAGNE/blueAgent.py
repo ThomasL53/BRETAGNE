@@ -7,8 +7,8 @@ import os
 import re
 
 tokens = {
-    'p-b': "yixeeLWYGdQjXtHqOKGWYw%3D%3D",
-    'p-lat': "TaTWh%2BB0ffzWoKmRe0gsub3b0UJJ0VeRtp6gRZ5pxQ%3D%3D",
+    'p-b': "",
+    'p-lat': "",
 }
 
 def pcap_to_csv(pcap_file,csv_file):
