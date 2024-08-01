@@ -1,5 +1,4 @@
 from poe_api_wrapper import PoeApi
-from scapy.all import rdpcap
 import BRETAGNE.monitoring
 import BRETAGNE.utils
 import time
