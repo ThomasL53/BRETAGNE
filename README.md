@@ -1,4 +1,4 @@
-# BRETAGNE ( Best Resilient Emulator for Training AI and Generate Network Environment ) 
+# BRETAGNE ( Best Resilient Emulator for Train AI and Generate Network Environment ) 
 Scenario simulation used for cage challenge 4 with Kathara
 
 
@@ -30,7 +30,7 @@ In ~/.docker/config.json change credsStore to credStore.
 ## check install:
 `kathara check`
 
-# Install Python API
+# Install Python dependency
 `sudo apt install python3-pip`
 
 `pip3 install yaspin`
@@ -38,6 +38,10 @@ In ~/.docker/config.json change credsStore to credStore.
 `python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv`
 
 `python3 -m pip install "kathara"`
+
+`pip3 install poe-api-wrapper`
+
+`pip3 install ballyregan`
 
 # Download and install BRETAGNE
 `git clone https://github.com/ThomasL53/BRETAGNE.git`
@@ -51,24 +55,46 @@ Source or add to bashrc the env.sh file
 For more help
 `bretagne -h`
 
+# Using the blue agent
+The blue agent used by BRETAGNE is based on the use of POE with a special bot based on the use of GPT-4o-mini.
+To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
+
+## How to get your Token
+
+### Getting p-b and p-lat cookies
+Sign in at https://poe.com/
+
+F12 for Devtools (Right-click + Inspect)
+- Chromium: Devtools > Application > Cookies > poe.com
+- Firefox: Devtools > Storage > Cookies
+- Safari: Devtools > Storage > Cookies
+
+Copy the values of `p-b` and `p-lat` cookies and paste on BRETAGNE/BlueAgent.py
+
 # Example of use
-Starting a simulation with wireshark on the Operator Network (ON) and DMZ:
 
-`bretagne --start --wireshark ON DMZ`
+Starting a simulation with metasploit on the Operator Network (ON) and on the network Restricted Zone A (RA):
 
-Starting a simulation with wireshark and metasploit on the Operator Network (ON):
-
-`bretagne --start --wireshark ON --metasploit ON`
+`bretagne --start --metasploit ON RA`
 
 Open a terminal on pc_ra1:
 
 `bretagne --control pc_ra1`
 
+Observe traffic on the Operator Network (ON):
+
+`bretagne --monitor ON`
+
 Generating user traffic on the network:
 
 `bretagne --generate_traffic 10`
 
+Deploy a blue agent on the Operator Network (ON):
+
+`bretagne --BlueAgent ON`
+
 Stop the simulation:
+
 `bretagne --stop`
 
 
