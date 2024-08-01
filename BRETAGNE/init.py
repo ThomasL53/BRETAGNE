@@ -6,18 +6,22 @@ import shutil
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-def add_monitoring(network,lab):
+def count_port(switchname):
     nbport = 0
-    lab.connect_machine_to_link(f"ovs_{network.lower()}","MNT")
-    with open(f"simu/ovs_{network.lower()}.startup", 'r') as file:
+    with open(f"simu/{switchname}.startup", 'r') as file:
         for line in file:
             if 'ovs-vsctl add-port' in line:
                 nbport = nbport +1
+        return nbport
+
+def add_monitoring(network,lab):
+    nbport = count_port(f"ovs_{network.lower()}")
+    lab.connect_machine_to_link(f"ovs_{network.lower()}","MNT")
     lab.update_file_from_list(
         [
-         f"ovs-vsctl add-port s1 eth{nbport+1} -- --id=@p get port eth{nbport+1} -- --id=@m create mirror name=m0 select-all=true output-port=@p -- set bridge s1 mirrors=@m"
+         f"ovs-vsctl add-port s1 eth{nbport+1} -- --id=@p get port eth{nbport+1} -- --id=@m create mirror name=m0 select-all=true -- set bridge s1 mirrors=@m"
         ],
-    f"ovs_{network.lower}.startup"
+    f"ovs_{network.lower()}.startup"
     )
     os.makedirs(f"simu/shared/script", exist_ok=True)
     os.makedirs(f"simu/shared/capture", exist_ok=True)
@@ -25,17 +29,18 @@ def add_monitoring(network,lab):
     dst_file = f"simu/shared/script/snif.sh"
     shutil.copy(src_file, dst_file)
 
-def add_wireshark_on(network, wireshark_count,lab):
-    print(f"Add wireshark_{network.lower()} to network {network.upper()}. Observe traffic at http://localhost:300{wireshark_count}")
-    wireshark=lab.new_machine(f"wireshark_{network.lower()}", **{"image": "lscr.io/linuxserver/wireshark"})
-    lab.connect_machine_to_link(wireshark.name, network.upper())
-    wireshark.add_meta("bridged","true")
-    wireshark.add_meta("port",f"300{wireshark_count}:3000/tcp")
-
 def add_metasploit_on(network,lab):
+    nbport = count_port(f"ovs_{network.lower()}")
     print(f"Add metasploit_{network.lower()} to network {network.upper()}")
     redagent=lab.new_machine(f"metasploit_{network.lower()}", **{"image": "metasploitframework/metasploit-framework"})
-    lab.connect_machine_to_link(redagent.name, network)
+    lab.connect_machine_to_link(redagent.name, f"META{network}")
+    lab.connect_machine_to_link(f"ovs_{network.lower()}",f"META{network}")
+    lab.update_file_from_list(
+        [
+         f"ovs-vsctl add-port s1 eth{nbport+1}"
+        ],
+    f"ovs_{network.lower()}.startup"
+    )
 
 def add_package():
     packages_dir="packages"

@@ -76,10 +76,3 @@ def Restore(hostname):
         commands = [cmd.strip() for cmd in commands if cmd.strip()]
         for command in commands:
             container.exec_run(command)
-
-src_ip = "1.1.1.0/24"
-dst_ip = "100.100.0.0/24"
-
-BlockTraffic(src_ip, dst_ip)
-AllowTraffic(src_ip, dst_ip)
-Restore("pc_ra1")
