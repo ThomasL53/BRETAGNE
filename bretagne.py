@@ -7,6 +7,7 @@ import BRETAGNE.stop
 import BRETAGNE.control
 import BRETAGNE.Generate_traffic
 import BRETAGNE.monitoring
+import BRETAGNE.utils.Sim_tools
 
 def main(args):
     start = False
@@ -19,7 +20,7 @@ def main(args):
         BRETAGNE.init.create_network(lab)
         if args.metasploit:
             for metasploit in args.metasploit:
-                BRETAGNE.init.add_metasploit_on(metasploit,lab)
+                BRETAGNE.utils.Sim_tools.add_metasploit_on(metasploit,lab)
         BRETAGNE.init.start(lab)
     if start:
         if args.control:

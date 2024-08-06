@@ -2,106 +2,31 @@ from Kathara.manager.Kathara import Kathara
 import os
 import random
 import ipaddress
-import shutil
 from yaspin import yaspin
 from yaspin.spinners import Spinners
+import BRETAGNE.utils.Sim_tools
 
-def count_port(switchname):
-    nbport = 0
-    with open(f"simu/{switchname}.startup", 'r') as file:
-        for line in file:
-            if 'ovs-vsctl add-port' in line:
-                nbport = nbport +1
-        return nbport
 
-def add_monitoring(network,lab):
-    nbport = count_port(f"ovs_{network.lower()}")
-    lab.connect_machine_to_link(f"ovs_{network.lower()}","MNT")
-    lab.update_file_from_list(
-        [
-         f"ovs-vsctl add-port s1 eth{nbport+1} -- --id=@p get port eth{nbport+1} -- --id=@m create mirror name=m0 select-all=true -- set bridge s1 mirrors=@m"
-        ],
-    f"ovs_{network.lower()}.startup"
-    )
-    os.makedirs(f"simu/shared/script", exist_ok=True)
-    os.makedirs(f"simu/shared/capture", exist_ok=True)
-    src_file = f"script/snif.sh"
-    dst_file = f"simu/shared/script/snif.sh"
-    shutil.copy(src_file, dst_file)
-
-def add_metasploit_on(network,lab):
-    nbport = count_port(f"ovs_{network.lower()}")
-    print(f"Add metasploit_{network.lower()} to network {network.upper()}")
-    redagent=lab.new_machine(f"metasploit_{network.lower()}", **{"image": "metasploitframework/metasploit-framework"})
-    lab.connect_machine_to_link(redagent.name, f"META{network}")
-    lab.connect_machine_to_link(f"ovs_{network.lower()}",f"META{network}")
-    lab.update_file_from_list(
-        [
-         f"ovs-vsctl add-port s1 eth{nbport+1}"
-        ],
-    f"ovs_{network.lower()}.startup"
-    )
-
-def add_package():
-    packages_dir="packages"
-    os.makedirs(f"simu/shared/packages", exist_ok=True)
-    for filename in os.listdir(packages_dir):
-        src_path = os.path.join(packages_dir, filename)
-        dst_path = os.path.join(f"simu/shared/packages", filename)
-        shutil.copy(src_path, dst_path)
-
-def add_srv_service_on(SRV,lab):
-    lab.update_file_from_list(
-        [
-            "systemctl start apache2",
-            "apt install ./shared/packages/vsftpd.deb",
-            "systemctl start vsftpd",
-            "systemctl start ssh",
-            "systemctl start named",
-            "systemctl start bind9"
-        ],
-    f"{SRV.name}.startup"
-    )
-
-def add_SDN_switch(name,subnet_count,lab):
-    OvS=lab.new_machine(f"ovs_{name}", **{"image":"thomasl53/bretagne_ovs:1.0"})
-    lab.connect_machine_to_link(OvS.name,"SDN")
-    lab.create_file_from_list(
-        [
-            f"ip addr add 20.0.1.{subnet_count}/24 dev eth0",
-            "/usr/share/openvswitch/scripts/ovs-ctl --system-id=random start",
-            "ovs-vsctl add-br s1",
-            "ovs-vsctl set-controller s1 tcp:20.0.1.254:6653"
-        ],
-        f"ovs_{name}.startup"
-    )
-    return OvS
-
-def add_SDN_comtroller(lab):
-    controller=lab.new_machine("controller", **{"image": "thomasl53/bretagne_floodlight"})
-    lab.connect_machine_to_link(controller.name,"SDN")
-    lab.create_file_from_list(
-        [
-            "ip addr add 20.0.1.254/24 dev eth0"
-        ],
-        "controller.startup"
-        )
-    controller.add_meta("bridged","true")
-    controller.add_meta("port",f"8080:8080/tcp")
-    print("Add controller floodlight to network SDN. Manage SDN at http://localhost:8080/ui/pages/index.html")
 
 def create_subnet(name,lab,subnet_count,subnet_addr=None):
     eth=1
     name=name.lower()
+    #choice of number of subnet hosts
     nb_PC=random.randint(3, 10)
     PC_list=[]
+    #choice of number of subnet serveurs
     nb_SRV=random.randint(1, 6)
     SRV_list=[]
+    #creation of an IPv4 object
     network = ipaddress.IPv4Network(subnet_addr)
     ips = []
+    #Creation of the network address (by definition, the last address in the range)
     gateway=".".join(subnet_addr.rsplit(".", 1)[:-1] + ["254"])
-    add_package()
-    OvS=add_SDN_switch(name,subnet_count,lab)
+    #copy packages to machines
+    BRETAGNE.utils.Sim_tools.add_package()
+    OvS=BRETAGNE.utils.Sim_tools.add_SDN_switch(name,subnet_count,lab)
+
+    #creating and connecting PCs to the switch
     for pc in range(1,nb_PC+1):
         PC_name="pc_" + name + str(pc)
         PC = lab.new_machine(PC_name)
@@ -116,18 +41,31 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
         eth=eth+1
         PC_list.append(PC)
 
+    #creating and connecting SRVs to the switch
     for srv in range(1,nb_SRV+1):
         SRV_name="srv_" + name + str(srv)
         SRV = lab.new_machine(SRV_name)
+        lab.connect_machine_to_link(SRV.name,(name+SRV.name).upper())
+        lab.connect_machine_to_link(OvS.name,(name+SRV.name).upper())
+        lab.update_file_from_list(
+            [
+                f"ovs-vsctl add-port s1 eth{eth}"
+            ],
+            f"ovs_{name}.startup"
+        )
+        eth=eth+1
         SRV_list.append(SRV)
+        BRETAGNE.utils.Sim_tools.add_srv_service_on(SRV, lab)
+
+    #Creating IPs for machines
     for i in range(1,nb_PC+nb_SRV+1):
         ip = str(network.network_address + i)
         ips.append(ip)
 
     machines= PC_list + SRV_list
 
+    #Machine IP configuration
     for i, machine in enumerate(machines):
-        lab.connect_machine_to_link(machine.name, name.upper())
         lab.create_file_from_list(
             [
                 f"/sbin/ifconfig eth0 {ips[i]}/24 up",
@@ -136,6 +74,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
             ],
         f"{machine.name}.startup"
         )
+        #Create a file with server IPs
         if "srv" in machine.name:
             file_path="simu/srv_iplist"
             if os.path.exists(file_path):
@@ -144,125 +83,60 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
             else:
                 with open(file_path, "w") as file:
                     file.write( ips[i] + "\n")
-    
-    for SRV in SRV_list:
-        add_srv_service_on(SRV, lab)
-    #connecting the last switch port to the router 
-    lab.connect_machine_to_link(OvS.name,name.upper())
-    lab.update_file_from_list(
-        [
-            f"ovs-vsctl add-port s1 eth{eth}"
-        ],
-        f"ovs_{name}.startup"
-    )
-
-def configure_frr_on(router):
-    router.create_file_from_path(os.path.join("config", f"{router.name}.conf"), "/etc/frr/frr.conf")
-    router.create_file_from_path(os.path.join("config", "daemons"), "/etc/frr/daemons")
-    router.create_file_from_string(content="service integrated-vtysh-config\n", dst_path="/etc/frr/vtysh.conf")
-    router.update_file_from_string(content=f"hostname {router.name}\n", dst_path="/etc/frr/vtysh.conf")
 
 def create_network(lab):
     subnet_count=1
     print("Creation of the scenario")
- # Configure and create fw_ra
-    fw_ra=lab.new_machine("fw_ra", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 1.1.1.254/24 up",
-            "/sbin/ifconfig eth1 1.1.0.254/24 up",
-            "/sbin/ifconfig eth2 10.10.10.1/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_ra.startup"
-    )
-    # Configure frr on fw_ra
-    configure_frr_on(fw_ra)
+    # Configure and create fw_ra
+    fw_ra=BRETAGNE.utils.Sim_tools.add_router_frr("fw_ra",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth0","1.1.1.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth1","1.1.0.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth2","10.10.10.1/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_ra)
+
     # Configure and create fw_oa
-    fw_oa=lab.new_machine("fw_oa", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 1.1.2.254/24 up",
-            "/sbin/ifconfig eth1 1.1.0.253/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_oa.startup"
-    )
-    # Configure frr on fw_oa
-    configure_frr_on(fw_oa)
+    fw_oa=BRETAGNE.utils.Sim_tools.add_router_frr("fw_oa",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth0","1.1.2.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth1","1.1.0.253/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_oa)
+
     # Configure and create fw_rb
-    fw_rb=lab.new_machine("fw_rb", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 1.2.1.254/24 up",
-            "/sbin/ifconfig eth1 1.2.0.254/24 up",
-            "/sbin/ifconfig eth2 10.10.10.2/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_rb.startup"
-    )
-    # Configure frr on fw_rb
-    configure_frr_on(fw_rb)
+    fw_rb=BRETAGNE.utils.Sim_tools.add_router_frr("fw_rb",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_rb","eth0","1.2.1.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_rb","eth1","1.2.0.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_rb","eth2","10.10.10.2/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_rb)
+
     # Configure and create fw_ob
-    fw_ob=lab.new_machine("fw_ob", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 1.2.2.254/24 up",
-            "/sbin/ifconfig eth1 1.2.0.253/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_ob.startup"
-    )
-    # Configure frr on fw_ob
-    configure_frr_on(fw_ob)
+    fw_ob=BRETAGNE.utils.Sim_tools.add_router_frr("fw_ob",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ob","eth0","1.2.2.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ob","eth1","1.2.0.253/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_ob)
+
     # Configure and create fw_cn
-    fw_cn=lab.new_machine("fw_cn", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 192.168.1.254/24 up",
-            "/sbin/ifconfig eth1 10.10.10.3/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_cn.startup"
-    )
-    # Configure frr on fw_cn
-    configure_frr_on(fw_cn)
+    fw_cn=BRETAGNE.utils.Sim_tools.add_router_frr("fw_cn",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_cn","eth0","192.168.1.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_cn","eth1","10.10.10.3/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_cn)
+
     # Configure and create fw_dmz
-    fw_dmz=lab.new_machine("fw_dmz", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 100.100.0.254/24 up",
-            "/sbin/ifconfig eth1 10.10.10.4/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_dmz.startup"
-    )
-    # Configure frr on fw_dmz
-    configure_frr_on(fw_dmz)
+    fw_dmz=BRETAGNE.utils.Sim_tools.add_router_frr("fw_dmz",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_dmz","eth0","100.100.0.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_dmz","eth1","10.10.10.4/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_dmz)
+
     # Configure and create fw_AN
-    fw_an=lab.new_machine("fw_an", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 100.100.1.254/24 up",
-            "/sbin/ifconfig eth1 100.100.0.253/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_an.startup"
-    )
-    # Configure frr on fw_AN
-    configure_frr_on(fw_an)
+
+    fw_an=BRETAGNE.utils.Sim_tools.add_router_frr("fw_an",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_an","eth0","100.100.1.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_an","eth1","100.100.0.253/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_an)
+
     # Configure and create fw_OFN
-    fw_ofn=lab.new_machine("fw_ofn", **{"image": "kathara/frr"})
-    lab.create_file_from_list(
-        [
-            "/sbin/ifconfig eth0 100.100.2.254/24 up",
-            "/sbin/ifconfig eth1 100.100.0.252/24 up",
-            "/etc/init.d/frr start"
-        ],
-        "fw_ofn.startup"
-    )
-    # Configure frr on fw_ofn
-    configure_frr_on(fw_ofn)
+    fw_ofn=BRETAGNE.utils.Sim_tools.add_router_frr("fw_ofn",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ofn","eth0","100.100.2.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ofn","eth1","1000.1000.0.252/24",lab)
+    BRETAGNE.utils.Sim_tools.configure_frr_on(fw_ofn)
 
     #deployed network A
     create_subnet("RA",lab,subnet_count,"1.1.1.0")
@@ -285,40 +159,50 @@ def create_network(lab):
     create_subnet("OFN",lab,subnet_count,"100.100.2.0")
     subnet_count=subnet_count+1
 
+    #connection of fw_ra
     lab.connect_machine_to_link(fw_ra.name, "RA")
     lab.connect_machine_to_link(fw_ra.name, "A")
     lab.connect_machine_to_link(fw_ra.name, "ON")
 
+    #connection of fw_oa
     lab.connect_machine_to_link(fw_oa.name, "OA")
     lab.connect_machine_to_link(fw_oa.name, "A")
 
+    #connection of fw_rb
     lab.connect_machine_to_link(fw_rb.name, "RB")
     lab.connect_machine_to_link(fw_rb.name, "B")
     lab.connect_machine_to_link(fw_rb.name, "ON")
 
+    #connection of fw_ob
     lab.connect_machine_to_link(fw_ob.name, "OB")
     lab.connect_machine_to_link(fw_ob.name, "B")
 
+    #connection of fw_cn
     lab.connect_machine_to_link(fw_cn.name, "CN")
     lab.connect_machine_to_link(fw_cn.name, "ON")
 
+    #connection of fw_dnz
     lab.connect_machine_to_link(fw_dmz.name, "DMZ")
     lab.connect_machine_to_link(fw_dmz.name, "ON")
 
+    #connection of fw_an
     lab.connect_machine_to_link(fw_an.name, "AN")
     lab.connect_machine_to_link(fw_an.name, "DMZ")
 
+    #connection of fw_ofn
     lab.connect_machine_to_link(fw_ofn.name, "OFN")
     lab.connect_machine_to_link(fw_ofn.name, "DMZ")
-    add_SDN_comtroller(lab)
-    add_monitoring("RA",lab)
-    add_monitoring("OA",lab)
-    add_monitoring("RB",lab)
-    add_monitoring("OB",lab)
-    add_monitoring("CN",lab)
-    add_monitoring("DMZ",lab)
-    add_monitoring("AN",lab)
-    add_monitoring("OFN",lab)
+
+    #alloy monitoring on the network
+    BRETAGNE.utils.Sim_tools.add_SDN_comtroller(lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("RA",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("OA",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("RB",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("OB",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("CN",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("DMZ",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("AN",lab)
+    BRETAGNE.utils.Sim_tools.add_monitoring("OFN",lab)
 
 def start(lab):
     with yaspin(Spinners.dots, text="Starting the simulation...") as spinner:

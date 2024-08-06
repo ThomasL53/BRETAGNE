@@ -1,6 +1,6 @@
 from poe_api_wrapper import PoeApi
 import BRETAGNE.monitoring
-import BRETAGNE.utils
+import BRETAGNE.utils.SDN_action
 import time
 import os
 import re
@@ -35,7 +35,7 @@ def check_response(rep):
         ip = re.search(regex,rep)
         if ip:
             ip = ip.group() + "/32"
-            BRETAGNE.utils.BlockTraffic(ip,"0.0.0.0/0")
+            BRETAGNE.utils.SDN_action.BlockTraffic(ip,"0.0.0.0/0")
             
 def run(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
@@ -43,7 +43,7 @@ def run(network):
     while 1:     
         clean_file(pcap_file,csv_file)
         BRETAGNE.monitoring.monitor(network.lower())
-        time.sleep(30)
+        time.sleep(15)
         pcap_to_csv(pcap_file,csv_file)
         time.sleep(1)
         respon = send_to_poe(csv_file)
