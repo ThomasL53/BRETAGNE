@@ -205,6 +205,8 @@ def create_network(lab):
     BRETAGNE.utils.Sim_tools.add_monitoring("OFN",lab)
 
 def start(lab):
+    with open("simu/labhash", "w") as file:
+        file.write(lab.hash)
     with yaspin(Spinners.dots, text="Starting the simulation...") as spinner:
         try:
             Kathara.get_instance().deploy_lab(lab)
