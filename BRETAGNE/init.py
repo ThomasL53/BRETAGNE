@@ -55,7 +55,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
         )
         eth=eth+1
         SRV_list.append(SRV)
-        BRETAGNE.utils.Sim_tools.add_srv_service_on(SRV, lab)
+        BRETAGNE.utils.Sim_tools.add_srv_service_on(SRV_name,lab)
 
     #Creating IPs for machines
     for i in range(1,nb_PC+nb_SRV+1):
@@ -66,7 +66,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
 
     #Machine IP configuration
     for i, machine in enumerate(machines):
-        lab.create_file_from_list(
+        lab.update_file_from_list(
             [
                 f"/sbin/ifconfig eth0 {ips[i]}/24 up",
                 f"route add default gw {gateway}",
@@ -74,7 +74,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
             ],
         f"{machine.name}.startup"
         )
-        #Create a file with server IPs
+        #Create a file with server IPs and configure SRV service
         if "srv" in machine.name:
             file_path="simu/srv_iplist"
             if os.path.exists(file_path):

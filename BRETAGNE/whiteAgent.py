@@ -7,11 +7,12 @@ import BRETAGNE.monitoring
 import random
 import re
 import csv
+import subprocess
 
 directory = "simu"
 ip_srvlist = []
 
-def exec_command(hostname,command):
+def exec_command(hostname,command, timeout=0):
 
     with open("simu/labhash", 'r') as file:
         labhash = file.read()
@@ -19,7 +20,11 @@ def exec_command(hostname,command):
     container_id = DockerMachine.get_container_name(hostname,labhash)
     client = docker.from_env()
     container = client.containers.get(container_id)
-    container.exec_run(command)
+    if timeout == 0:
+        container.exec_run(command)
+    else:
+        container.exec_run(command,detach=True)
+        time.sleep(timeout)
 
 def pcap_to_csv(pcap_file,csv_file):
     os.system('tshark -r ' + pcap_file + ' >' + csv_file)
@@ -34,12 +39,22 @@ def portscan(attackerIP,defenderIP,network):
     exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
     exec_command(f"metasploit_{network.lower()}",command)
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
+    return "portscan"
 
 def webddos(attackerIP,defenderIP,network):
-    command= f"./msfconsole -x \"use auxiliary/dos/http/slowloris; set RHOST {defenderIP}; set RPORT 80; set delay 5; set sockets 10; run; exit\""
+    command= f"./msfconsole -x \"use auxiliary/dos/http/slowloris; set RHOST {defenderIP}; set delay 5; set sockets 10; run; exit\""
+    exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
+    exec_command(f"metasploit_{network.lower()}",command, 20)
+    exec_command(f"metasploit_{network.lower()}",f"pkill -f \"msfconsole -x\" ")
+    exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
+    return "web ddos"
+
+def bruteforcessh(attackerIP,defenderIP,network):
+    command= f"./msfconsole -x \"use auxiliary/scanner/ssh/ssh_login; set RHOST {defenderIP}; set USERNAME root; set PASS_FILE /shared/script/password; set THREADS 4; run; exit\""
     exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
     exec_command(f"metasploit_{network.lower()}",command)
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
+    return "brute force ssh"
 
 def get_ip_network(network):
     with open(f"simu/pc_{network.lower()}1.startup", "r") as file:
@@ -59,15 +74,15 @@ def get_srv_ip():
     return ip_srvlist
 
 def random_attack(network):
-    actions= [portscan,webddos]
+    actions= [portscan,webddos,bruteforcessh]
     global ip_srvlist
     ip_srvlist = get_srv_ip()
     random_action = random.choice(actions)
     defenderIP=random.choice(ip_srvlist)
     subnetIP=get_ip_network(network.lower())
     attackerIP=".".join(subnetIP.rsplit(".", 1)[:-1] + [str(random.randint(20,220))])
-    random_action(attackerIP,defenderIP,network)
-    return attackerIP,defenderIP
+    attackname=random_action(attackerIP,defenderIP,network)
+    return attackerIP,defenderIP, attackname
 
 def generate_dataset(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
@@ -79,11 +94,12 @@ def generate_dataset(network):
         attack = random.randint(0,1)
         userTraffic = random.randint(0,1)
         if attack == 1:
-            attackerIP,defenderIP,=random_attack(network)
-            print(attackerIP + " attack: " + defenderIP)
+            attackerIP,defenderIP,attackname=random_attack(network)
+            print(attackerIP + " attack: " + defenderIP + " :" + attackname)
         else:
             attackerIP=0
             defenderIP=0
+            attackname="no attack"
             print("no attack")
         if userTraffic == 1:
             BRETAGNE.Generate_traffic.start(3)
@@ -99,9 +115,9 @@ def generate_dataset(network):
             
             # Écrire l'en-tête si le fichier vient d'être créé
             if not file_exists:
-                writer.writerow(["Traffic", "Attack Flag", "Attacker IP", "Defender IP"])
+                writer.writerow(["Traffic", "Attack Flag", "Attacker IP", "Defender IP","Attack type"])
             
             # Ajouter une nouvelle ligne avec les données
-            writer.writerow([csv_string, attack, attackerIP, defenderIP])
+            writer.writerow([csv_string, attack, attackerIP, defenderIP, attackname])
 
 generate_dataset("ra")

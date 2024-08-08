@@ -39,6 +39,10 @@ def add_metasploit_on(network,lab):
         ],
     f"ovs_{network.lower()}.startup"
     )
+    os.makedirs(f"simu/shared/script", exist_ok=True)
+    src_file = f"script/password"
+    dst_file = f"simu/shared/script/password"
+    shutil.copy(src_file, dst_file)
 
 #Function for sharing packages with machines in the simu
 def add_package():
@@ -51,16 +55,16 @@ def add_package():
 
 #Function for add a predefined service to a node 
 def add_srv_service_on(SRV,lab):
-    lab.update_file_from_list(
+    lab.create_file_from_list(
         [
-            "systemctl start apache2",
+            "/etc/init.d/apache2 start",
             "apt install ./shared/packages/vsftpd.deb",
-            "systemctl start vsftpd",
-            "systemctl start ssh",
-            "systemctl start named",
-            "systemctl start bind9"
+            "/etc/init.d/vsftpd start",
+            "/etc/init.d/ssh start",
+            "/etc/init.d/named start",
+            "/etc/init.d/bind start"
         ],
-    f"{SRV.name}.startup"
+    f"{SRV}.startup"
     )
 
 #Function for add SDN switch an the network
