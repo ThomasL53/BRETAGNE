@@ -1,6 +1,6 @@
 import os
 import shutil
-
+import re
 #function to count the number of switch ports
 def count_port(switchname):
     nbport = 0
@@ -9,6 +9,14 @@ def count_port(switchname):
             if 'ovs-vsctl add-port' in line:
                 nbport = nbport +1
         return nbport
+
+def get_ip_network(network):
+    with open(f"simu/pc_{network.lower()}1.startup", "r") as file:
+        content = file.read()
+    ip_match = re.search(r"/sbin/ifconfig eth\d (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d{1,2} up", content)
+    if ip_match:
+        ip_address = ip_match.group(1)
+        return ip_address
 
 #function to setting up a monitoring port on a switch 
 def add_monitoring(network,lab):

@@ -5,11 +5,9 @@ import time
 import os
 import re
 import boto3
-import json
 from botocore.exceptions import ClientError
 tokens = {
-    'p-b': "",
-    'p-lat': "",
+
 }
 
 def pcap_to_csv(pcap_file,csv_file):
@@ -20,7 +18,7 @@ def clean_file(pcap_file,csv_file):
     if os.path.isfile(csv_file):
         os.remove(csv_file)
 
-def send_to_poe(csv_file):
+def send_to_poe(csv_file): 
     response = ""
     client = PoeApi(tokens=tokens)
     message = "Has there been a cyber attack ?"
@@ -31,32 +29,87 @@ def send_to_poe(csv_file):
     print("")
     return response
 
-def send_to_bedrock(csv_file):
-    brt = boto3.client("bedrock-runtime")
+def send_to_bedrock_prompt(csv_file, model):
+    brt = boto3.client("bedrock-runtime", region_name="us-west-2")
     with open(csv_file, 'r', encoding='utf-8') as file:
         csv_string = file.read()
 
-    prompt = f"I have a CSV file containing network data captured on our network. Could you analyze this network traffic and say whether or not an attack has taken place.  The answer should be as short as possible: yes or no with the attacker ip. : {csv_string}"
+    prompt = f"This is network data captured on our network. Could you analyze this network traffic and say whether or not an attack has taken place.  The answer should be as short as possible:only yes or no with the attacker ip. : {csv_string}"
     conversation = [
         {
             "role": "user",
             "content": [{"text": prompt}],
         }
     ]
+    if model == "sonnet":
+        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0"
+    elif model == "llama":
+        modelId="meta.llama3-1-405b-instruct-v1:0"
     try:
         # Send the message to the model, using a basic inference configuration.
         response = brt.converse(
-            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            modelId=modelId,
             messages=conversation,
-            inferenceConfig={"maxTokens":5,"temperature":0},
-            additionalModelRequestFields={"top_k":500}
+            inferenceConfig={"maxTokens":40,"temperature":0.7,"topP":0.7},
+            additionalModelRequestFields={}
         )
 
         # Extract and print the response text.
         response_text = response["output"]["message"]["content"][0]["text"]
-        print(response_text)
+        return response_text
     except (ClientError, Exception) as e:
-        print(f"ERROR: Can't invoke 'Claude'. Reason: {e}")
+        print(f"ERROR: Can't invoke {modelId}. Reason: {e}")
+        exit(1)
+
+
+
+def send_to_bedrock(csv_file, model):
+    if model == "mistral":
+        modelId="mistral.mistral-large-2407-v1:0"
+    elif model == "llama":
+       respon=send_to_bedrock_prompt(csv_file,model)
+       return respon
+    elif model == "sonnet":
+        respon=send_to_bedrock_prompt(csv_file,model)
+        return respon
+    brt = boto3.client("bedrock-runtime", region_name="us-west-2")
+    with open(csv_file, 'rb') as file:
+        csv_file = file.read()
+
+    prompt = f"I have a CSV file containing network data captured on our network. Could you analyze this network traffic and say whether or not an attack has taken place.  The answer should be as short as possible: only yes or no with the attacker ip"
+    conversation = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "document": {
+                        "name": "traffic",
+                        "format": "csv",
+                        "source": {
+                            "bytes": csv_file
+                        }
+                    }
+                },
+                {
+                    "text": prompt
+                }
+            ]
+        }
+    ]
+    try:
+        # Send the message to the model, using a basic inference configuration.
+        response = brt.converse(
+            modelId=modelId,
+            messages=conversation,
+            inferenceConfig={"maxTokens":40,"temperature":0.7,"topP":0.7},
+            additionalModelRequestFields={}
+        )
+
+        # Extract and print the response text.
+        response_text = response["output"]["message"]["content"][0]["text"]
+        return response_text
+    except (ClientError, Exception) as e:
+        print(f"ERROR: Can't invoke {modelId}. Reason: {e}")
         exit(1)
 
 def check_response(rep):

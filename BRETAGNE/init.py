@@ -96,8 +96,8 @@ def create_network(lab):
 
     # Configure and create fw_oa
     fw_oa=BRETAGNE.utils.Sim_tools.add_router_frr("fw_oa",lab)
-    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth0","1.1.2.254/24",lab)
-    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_ra","eth1","1.1.0.253/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_oa","eth0","1.1.2.254/24",lab)
+    BRETAGNE.utils.Sim_tools.add_ip_addr_on("fw_oa","eth1","1.1.0.253/24",lab)
     BRETAGNE.utils.Sim_tools.configure_frr_on(fw_oa)
 
     # Configure and create fw_rb

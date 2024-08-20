@@ -7,7 +7,8 @@ import BRETAGNE.monitoring
 import random
 import re
 import csv
-import subprocess
+import BRETAGNE.blueAgent
+import BRETAGNE.utils.Sim_tools
 
 directory = "simu"
 ip_srvlist = []
@@ -35,34 +36,35 @@ def clean_file(pcap_file,csv_file):
         os.remove(csv_file)
 
 def portscan(attackerIP,defenderIP,network):
-    command= f"./msfconsole -x \"use auxiliary/scanner/portscan/tcp; set RHOST {defenderIP}; set RPORTS 1-1024; run; exit\""
+    subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
+    gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
+    command= f"./msfconsole -x \"use auxiliary/scanner/portscan/tcp; set RHOST {defenderIP}; set PORTS 1-512; run; exit\""
     exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
+    exec_command(f"metasploit_{network.lower()}",f"ip route add default via {gateway} dev eth0")
     exec_command(f"metasploit_{network.lower()}",command)
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "portscan"
 
 def webddos(attackerIP,defenderIP,network):
+    subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
+    gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
     command= f"./msfconsole -x \"use auxiliary/dos/http/slowloris; set RHOST {defenderIP}; set delay 5; set sockets 10; run; exit\""
     exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
+    exec_command(f"metasploit_{network.lower()}",f"ip route add default via {gateway} dev eth0")
     exec_command(f"metasploit_{network.lower()}",command, 20)
     exec_command(f"metasploit_{network.lower()}",f"pkill -f \"msfconsole -x\" ")
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "web ddos"
 
 def bruteforcessh(attackerIP,defenderIP,network):
+    subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
+    gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
     command= f"./msfconsole -x \"use auxiliary/scanner/ssh/ssh_login; set RHOST {defenderIP}; set USERNAME root; set PASS_FILE /shared/script/password; set THREADS 4; run; exit\""
     exec_command(f"metasploit_{network.lower()}",f"ip addr add {attackerIP}/24 dev eth0")
+    exec_command(f"metasploit_{network.lower()}",f"ip route add default via {gateway} dev eth0")
     exec_command(f"metasploit_{network.lower()}",command)
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "brute force ssh"
-
-def get_ip_network(network):
-    with open(f"simu/pc_{network.lower()}1.startup", "r") as file:
-        content = file.read()
-    ip_match = re.search(r"/sbin/ifconfig eth\d (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d{1,2} up", content)
-    if ip_match:
-        ip_address = ip_match.group(1)
-        return ip_address
 
 def get_srv_ip():
     file="simu/srv_iplist"
@@ -79,7 +81,7 @@ def random_attack(network):
     ip_srvlist = get_srv_ip()
     random_action = random.choice(actions)
     defenderIP=random.choice(ip_srvlist)
-    subnetIP=get_ip_network(network.lower())
+    subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
     attackerIP=".".join(subnetIP.rsplit(".", 1)[:-1] + [str(random.randint(20,220))])
     attackname=random_action(attackerIP,defenderIP,network)
     return attackerIP,defenderIP, attackname
@@ -103,7 +105,7 @@ def generate_dataset(network):
             print("no attack")
         if userTraffic == 1:
             BRETAGNE.Generate_traffic.start(3)
-        time.sleep(15)
+        time.sleep(5)
         pcap_to_csv(pcap_file,csv_file)
         time.sleep(1)
         with open(csv_file, 'r', encoding='utf-8') as file:
@@ -120,4 +122,56 @@ def generate_dataset(network):
             # Ajouter une nouvelle ligne avec les données
             writer.writerow([csv_string, attack, attackerIP, defenderIP, attackname])
 
-generate_dataset("ra")
+def evaluateLLM(network):
+    i = 0
+    score = 129
+    regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+    while 1:
+        pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
+        csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
+        clean_file(pcap_file,csv_file)
+        BRETAGNE.monitoring.monitor(network.lower())
+        attack = random.randint(0,1)
+        if attack == 1:
+            attackerIP,defenderIP,attackname=random_attack(network)
+            print(attackerIP + " attack: " + defenderIP + " :" + attackname)
+        else:
+            attackerIP=0
+            defenderIP=0
+            attackname="no attack"
+            print("no attack")
+            BRETAGNE.Generate_traffic.start(1)
+            time.sleep(5)
+        pcap_to_csv(pcap_file,csv_file)
+        with open(csv_file, 'r') as file:
+            content = file.read()
+        if not content:
+            with open(csv_file, 'w') as file:
+                file.write("no traffic")
+        time.sleep(1)
+        #respon = str(BRETAGNE.blueAgent.send_to_poe(csv_file)).lower()
+        respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,"llama")).lower()
+        print(respon)
+        #print(respon)
+        if attack == 0 and "no" in respon:
+            score=score+5
+        elif attack == 1 and "no" in respon:
+            score=score-1
+        elif attack == 0 and re.search(regex,respon):
+            score=score-5
+        elif attack == 1 and re.search(regex,respon) and not attackerIP in respon:
+            score=score-3
+        elif attack == 1 and attackerIP in respon:
+            score=score+5
+        elif attack == 1 and "yes" and not re.search(regex,respon):
+            score=score+1
+        elif attack == 1 and not "yes" and not re.search(regex,respon):
+            score=score+1
+        elif attack == 0 and "yes" in respon:
+            score=score-5
+        i=i+1
+        print(f"score: {score} in {i} iteractions")
+        
+
+#generate_dataset("ra")
+evaluateLLM("ra")
