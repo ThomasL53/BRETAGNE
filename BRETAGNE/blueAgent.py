@@ -7,7 +7,6 @@ import re
 import boto3
 from botocore.exceptions import ClientError
 tokens = {
-
 }
 
 def pcap_to_csv(pcap_file,csv_file):
@@ -130,5 +129,5 @@ def run(network):
         pcap_to_csv(pcap_file,csv_file)
         time.sleep(1)
         respon = send_to_bedrock(csv_file)
-        #check_response(respon)
+        check_response(respon)
         print(respon)

@@ -124,7 +124,7 @@ def generate_dataset(network):
 
 def evaluateLLM(network):
     i = 0
-    score = 129
+    score = 138
     regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
     while 1:
         pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
@@ -149,8 +149,8 @@ def evaluateLLM(network):
             with open(csv_file, 'w') as file:
                 file.write("no traffic")
         time.sleep(1)
-        #respon = str(BRETAGNE.blueAgent.send_to_poe(csv_file)).lower()
-        respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,"llama")).lower()
+        respon = str(BRETAGNE.blueAgent.send_to_poe(csv_file)).lower()
+        #respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,"llama")).lower()
         print(respon)
         #print(respon)
         if attack == 0 and "no" in respon:
