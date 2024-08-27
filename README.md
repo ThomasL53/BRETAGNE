@@ -65,10 +65,8 @@ execute:
 `aws configure`
 
 
-
-
-# Using the blue agent (POE not recommended) 
-L#agent bleu de BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
+# Using the blue agent with POE (not recommended) 
+The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
 To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
 
 ## How to get your Token
