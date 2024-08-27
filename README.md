@@ -1,4 +1,4 @@
-# BRETAGNE ( Best Resilient Emulator for Train AI and Generate Network Environment ) 
+# BRETAGNE ( Building a Reproducible and Efficient Training AI Gym for Network Environments ) 
 Scenario simulation used for cage challenge 4 with Kathara
 
 
@@ -56,7 +56,19 @@ For more help
 `bretagne -h`
 
 # Using the blue agent
-The blue agent used by BRETAGNE is based on the use of POE with a special bot based on the use of GPT-4o-mini.
+The blue agent used by BRETAGNE is based on the use of AWS bedrock with claude 3,5 Sonnet.
+To use the Blue Agent, you need to configure your AWS login and password.
+
+## Configure the AWS credentials
+execute:
+
+`aws configure`
+
+
+
+
+# Using the blue agent (POE not recommended) 
+L#agent bleu de BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
 To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
 
 ## How to get your Token
