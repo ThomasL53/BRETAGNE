@@ -39,10 +39,6 @@ In ~/.docker/config.json change credsStore to credStore.
 
 `python3 -m pip install "kathara"`
 
-`pip3 install poe-api-wrapper`
-
-`pip3 install ballyregan`
-
 # Download and install BRETAGNE
 `git clone https://github.com/ThomasL53/BRETAGNE.git`
 
@@ -64,10 +60,15 @@ execute:
 
 `aws configure`
 
-
 # Using the blue agent with POE (not recommended) 
 The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
 To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
+
+## Install POE API
+
+`pip3 install poe-api-wrapper`
+
+`pip3 install ballyregan`
 
 ## How to get your Token
 
