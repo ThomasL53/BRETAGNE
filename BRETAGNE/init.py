@@ -6,7 +6,7 @@ from yaspin import yaspin
 from yaspin.spinners import Spinners
 import BRETAGNE.utils.Sim_tools
 
-
+#This function creates a subnet with 3 to 10 hosts and 1 to 6 servers connected via an OpenVswitch. 
 def create_subnet(name,lab,subnet_count,subnet_addr=None):
     eth=1
     name=name.lower()
@@ -25,10 +25,11 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
     BRETAGNE.utils.Sim_tools.add_package()
     OvS=BRETAGNE.utils.Sim_tools.add_SDN_switch(name,subnet_count,lab)
 
-    #creating and connecting PCs to the switch
+    #creating PCs
     for pc in range(1,nb_PC+1):
         PC_name="pc_" + name + str(pc)
         PC = lab.new_machine(PC_name)
+        #connecting PCs to the switch
         lab.connect_machine_to_link(PC.name,(name+PC.name).upper())
         lab.connect_machine_to_link(OvS.name,(name+PC.name).upper())
         lab.update_file_from_list(
@@ -40,10 +41,11 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
         eth=eth+1
         PC_list.append(PC)
 
-    #creating and connecting SRVs to the switch
+    #creating SRVs
     for srv in range(1,nb_SRV+1):
         SRV_name="srv_" + name + str(srv)
         SRV = lab.new_machine(SRV_name)
+        #connecting SRVs to the switch
         lab.connect_machine_to_link(SRV.name,(name+SRV.name).upper())
         lab.connect_machine_to_link(OvS.name,(name+SRV.name).upper())
         lab.update_file_from_list(
@@ -54,6 +56,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
         )
         eth=eth+1
         SRV_list.append(SRV)
+        #add service apache2, ftp, ...
         BRETAGNE.utils.Sim_tools.add_srv_service_on(SRV_name,lab)
 
     #Creating IPs for machines
@@ -83,6 +86,7 @@ def create_subnet(name,lab,subnet_count,subnet_addr=None):
                 with open(file_path, "w") as file:
                     file.write( ips[i] + "\n")
 
+#This function creates the different routers and their configuration and connects the different subnets
 def create_network(lab):
     subnet_count=1
     print("Creation of the scenario")
