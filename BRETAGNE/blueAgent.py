@@ -1,4 +1,4 @@
-from poe_api_wrapper import PoeApi
+#from poe_api_wrapper import PoeApi
 import BRETAGNE.monitoring
 import BRETAGNE.utils.SDN_action
 import time
@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 tokens = {
 }
 
+"""""
 #This fonction send network trafic via a CSV file to BRETAGNE-BOT on POE 
 def send_to_poe(csv_file): 
     response = ""
@@ -19,6 +20,7 @@ def send_to_poe(csv_file):
         response = response + chunk["response"]
     print("")
     return response
+"""""
 
 #This fonction send network trafic to BEDROCK directly on the prompt (for LLM whose doesn't support file)
 def send_to_bedrock_prompt(csv_file, model):
