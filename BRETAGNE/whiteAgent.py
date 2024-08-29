@@ -4,6 +4,7 @@ import time
 import os
 import BRETAGNE.Generate_traffic
 import BRETAGNE.monitoring
+import BRETAGNE.utils.tools
 import random
 import re
 import csv
@@ -26,14 +27,6 @@ def exec_command(hostname,command, timeout=0):
     else:
         container.exec_run(command,detach=True)
         time.sleep(timeout)
-
-def pcap_to_csv(pcap_file,csv_file):
-    os.system('tshark -r ' + pcap_file + ' >' + csv_file)
-def clean_file(pcap_file,csv_file):
-    if os.path.isfile(pcap_file):
-        os.remove(pcap_file)
-    if os.path.isfile(csv_file):
-        os.remove(csv_file)
 
 def portscan(attackerIP,defenderIP,network):
     subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
@@ -89,9 +82,10 @@ def random_attack(network):
 def generate_dataset(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
     csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
-    dataset_file= "dataset.csv"
+    dataset_file= f"dataset_{network.lower()}.csv"
+    print(f"Generation of a dataset {dataset_file}. \n ctrl + c to stop the generation")
     while 1:     
-        clean_file(pcap_file,csv_file)
+        BRETAGNE.utils.tools.clean_file(pcap_file,csv_file)
         BRETAGNE.monitoring.monitor(network)
         attack = random.randint(0,1)
         userTraffic = random.randint(0,1)
@@ -106,7 +100,7 @@ def generate_dataset(network):
         if userTraffic == 1:
             BRETAGNE.Generate_traffic.start(3)
         time.sleep(5)
-        pcap_to_csv(pcap_file,csv_file)
+        BRETAGNE.utils.tools.pcap_to_csv(pcap_file,csv_file)
         time.sleep(1)
         with open(csv_file, 'r', encoding='utf-8') as file:
             csv_string = file.read()
@@ -122,14 +116,19 @@ def generate_dataset(network):
             # Ajouter une nouvelle ligne avec les données
             writer.writerow([csv_string, attack, attackerIP, defenderIP, attackname])
 
-def evaluateLLM(network):
+def evaluateLLM(network,LLM):
+    if LLM not in ["mistral","llama","sonnet"]:
+        print("LLM not supported! Please use mistral, llama or sonnet ")
+        return 0
+    else:
+        print(f"Evaluation of {LLM}. \n ctrl + c to stop the Evaluation")
     i = 0
     score = 138
     regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
     while 1:
         pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
         csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
-        clean_file(pcap_file,csv_file)
+        BRETAGNE.utils.tools.clean_file(pcap_file,csv_file)
         BRETAGNE.monitoring.monitor(network.lower())
         attack = random.randint(0,1)
         if attack == 1:
@@ -142,17 +141,15 @@ def evaluateLLM(network):
             print("no attack")
             BRETAGNE.Generate_traffic.start(1)
             time.sleep(5)
-        pcap_to_csv(pcap_file,csv_file)
+        BRETAGNE.utils.tools.pcap_to_csv(pcap_file,csv_file)
         with open(csv_file, 'r') as file:
             content = file.read()
         if not content:
             with open(csv_file, 'w') as file:
                 file.write("no traffic")
         time.sleep(1)
-        respon = str(BRETAGNE.blueAgent.send_to_poe(csv_file)).lower()
-        #respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,"llama")).lower()
-        print(respon)
-        #print(respon)
+        #respon = str(BRETAGNE.blueAgent.send_to_poe(csv_file)).lower()
+        respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,LLM)).lower()
         if attack == 0 and "no" in respon:
             score=score+5
         elif attack == 1 and "no" in respon:
@@ -171,7 +168,3 @@ def evaluateLLM(network):
             score=score-5
         i=i+1
         print(f"score: {score} in {i} iteractions")
-        
-
-#generate_dataset("ra")
-evaluateLLM("ra")

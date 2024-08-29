@@ -8,6 +8,7 @@ import BRETAGNE.control
 import BRETAGNE.Generate_traffic
 import BRETAGNE.monitoring
 import BRETAGNE.utils.Sim_tools
+import BRETAGNE.whiteAgent
 
 def main(args):
     start = False
@@ -33,6 +34,13 @@ def main(args):
         elif args.BlueAgent:
             for network in args.BlueAgent:
                 BRETAGNE.blueAgent.run(network.lower())
+        elif args.WhiteAgent:
+            for network in args.WhiteAgent:
+                BRETAGNE.whiteAgent.generate_dataset(network.lower())
+        elif args.evaluate:
+            llm, networks = args.evaluate[0], args.evaluate[1:]
+            for network in networks:
+                BRETAGNE.whiteAgent.evaluateLLM(llm,network)
         elif args.stop:
             BRETAGNE.stop.stop()
     elif not args.start:
@@ -48,6 +56,8 @@ if __name__ == "__main__":
     parser.add_argument("--control",type=str, help="Open a terminal on the specified node")
     parser.add_argument("--generate_traffic",type=int, help="Generate x random connection")
     parser.add_argument("--BlueAgent",nargs="+", help="Deploy BlueAgent on the networks specified in the command line")
+    parser.add_argument("--WhiteAgent",nargs="+", help="Deploy WhiteAgent on the networks specified in the command line")
+    parser.add_argument("--evaluate", nargs="+", help="Evaluate a LLM on specified networks (format: --evaluate <LLM> <network1> <network2> ...) Please usr mistral, llama or sonnet")
     args = parser.parse_args()
 
     if not any(vars(args).values()):

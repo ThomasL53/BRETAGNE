@@ -2,20 +2,11 @@ from poe_api_wrapper import PoeApi
 import BRETAGNE.monitoring
 import BRETAGNE.utils.SDN_action
 import time
-import os
 import re
 import boto3
 from botocore.exceptions import ClientError
 tokens = {
 }
-
-def pcap_to_csv(pcap_file,csv_file):
-    os.system('tshark -r ' + pcap_file + ' >' + csv_file)
-def clean_file(pcap_file,csv_file):
-    if os.path.isfile(pcap_file):
-        os.remove(pcap_file)
-    if os.path.isfile(csv_file):
-        os.remove(csv_file)
 
 def send_to_poe(csv_file): 
     response = ""
@@ -59,8 +50,6 @@ def send_to_bedrock_prompt(csv_file, model):
     except (ClientError, Exception) as e:
         print(f"ERROR: Can't invoke {modelId}. Reason: {e}")
         exit(1)
-
-
 
 def send_to_bedrock(csv_file, model):
     if model == "mistral":
@@ -123,11 +112,11 @@ def run(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
     csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
     while 1:     
-        clean_file(pcap_file,csv_file)
+        BRETAGNE.utils.tools.clean_file(pcap_file,csv_file)
         BRETAGNE.monitoring.monitor(network.lower())
         time.sleep(15)
-        pcap_to_csv(pcap_file,csv_file)
+        BRETAGNE.utils.tools.pcap_to_csv(pcap_file,csv_file)
         time.sleep(1)
-        respon = send_to_bedrock(csv_file)
+        respon = send_to_bedrock(csv_file, "sonnet")
         check_response(respon)
         print(respon)
