@@ -48,6 +48,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+    #creation of the command line interface
     parser = argparse.ArgumentParser(description="cage challenge 4 scenario simulation with kathara")
     parser.add_argument("--start",action="store_true", help="Simple simulation start-up")
     parser.add_argument("--stop",action="store_true", help="Stop simulation")

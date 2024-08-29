@@ -14,6 +14,7 @@ import BRETAGNE.utils.Sim_tools
 directory = "simu"
 ip_srvlist = []
 
+#Exec a command on the specified node without Katahra
 def exec_command(hostname,command, timeout=0):
 
     with open("simu/labhash", 'r') as file:
@@ -28,6 +29,7 @@ def exec_command(hostname,command, timeout=0):
         container.exec_run(command,detach=True)
         time.sleep(timeout)
 
+#Launch a ports scam from the specified host to the specified host by using Metasploit framework
 def portscan(attackerIP,defenderIP,network):
     subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
     gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
@@ -38,6 +40,7 @@ def portscan(attackerIP,defenderIP,network):
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "portscan"
 
+#Launch a slowloris attack from the specified host to the specified host by using Metasploit framework
 def webddos(attackerIP,defenderIP,network):
     subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
     gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
@@ -49,6 +52,7 @@ def webddos(attackerIP,defenderIP,network):
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "web ddos"
 
+#Launch a brute force  ssh attack from the specified host to the specified host by using Metasploit framework
 def bruteforcessh(attackerIP,defenderIP,network):
     subnetIP=BRETAGNE.utils.Sim_tools.get_ip_network(network.lower())
     gateway=".".join(subnetIP.rsplit(".", 1)[:-1] + ["254"])
@@ -59,6 +63,7 @@ def bruteforcessh(attackerIP,defenderIP,network):
     exec_command(f"metasploit_{network.lower()}",f"ip addr del {attackerIP}/24 dev eth0")
     return "brute force ssh"
 
+#This function returns a list of all IPs assigned to servers (with at least one service accessible)
 def get_srv_ip():
     file="simu/srv_iplist"
     with open(file, 'r') as file:
@@ -68,6 +73,7 @@ def get_srv_ip():
                 ip_srvlist.append(ip)
     return ip_srvlist
 
+#This function lanch a random attack from a random host to a random host and return the attacker IP, the victim IP amd the attack type
 def random_attack(network):
     actions= [portscan,webddos,bruteforcessh]
     global ip_srvlist
@@ -79,6 +85,7 @@ def random_attack(network):
     attackname=random_action(attackerIP,defenderIP,network)
     return attackerIP,defenderIP, attackname
 
+#This function generate a CSV file with: the network traffic, the attacker IP, the victim IP amd the attack type
 def generate_dataset(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
     csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
@@ -116,12 +123,13 @@ def generate_dataset(network):
             # Ajouter une nouvelle ligne avec les données
             writer.writerow([csv_string, attack, attackerIP, defenderIP, attackname])
 
+#This function compute a score for evaluate different LLM
 def evaluateLLM(network,LLM):
     if LLM not in ["mistral","llama","sonnet"]:
         print("LLM not supported! Please use mistral, llama or sonnet ")
         return 0
     else:
-        print(f"Evaluation of {LLM}. \n ctrl + c to stop the Evaluation")
+        print(f"Evaluation of {LLM}. \n ctrl + c to stop the evaluation")
     i = 0
     score = 138
     regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"

@@ -7,7 +7,7 @@ import time
 directory = "simu"
 ip_srvlist = []
 
-
+#This function returning a list with the names of all the machines in the simulation
 def get_machine_names(directory):
     machine_names = []
     for filename in os.listdir(directory):
@@ -16,6 +16,7 @@ def get_machine_names(directory):
             machine_names.append(machine_name)
     return machine_names
 
+#This function returns a list of all allocated IP addresses for this simulation
 def get_ip_addresses(directory):
     ip_addresses = []
     for filename in os.listdir(directory):
@@ -29,6 +30,7 @@ def get_ip_addresses(directory):
                     ip_addresses.append(ip_address)
     return ip_addresses
 
+#This function returns a list of all IPs assigned to servers (with at least one service accessible)
 def get_srv_ip():
     file="simu/srv_iplist"
     with open(file, 'r') as file:
@@ -47,27 +49,26 @@ def generate_www(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'wget {random.choice(ip_srvlist)}',wait=True, lab_name="simu")
         time.sleep(0.05)
-def generate_www(nbconnexion):
-    for i in range(nbconnexion):
-        Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'wget {random.choice(ip_srvlist)}',wait=True, lab_name="simu")
-        time.sleep(0.05)
+
 def generate_ftp(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'ftp {random.choice(ip_srvlist)}',wait=True, lab_name="simu")
         time.sleep(0.05)
+
 def generate_ssh(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'ssh {random.choice(ip_srvlist)}',wait=True, lab_name="simu")
         time.sleep(0.05)
+
 def generate_dns(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'dig @{random.choice(ip_srvlist)} yannandthomas4ever.com',wait=True, lab_name="simu")
         time.sleep(0.05)
+
 def generate_dhcp(nbconnexion):
     for i in range(nbconnexion):
         Kathara.get_instance().exec(machine_name=random.choice(machine_list),command=f'dhcp-lease-querry -s {random.choice(ip_srvlist)} ',wait=True, lab_name="simu")
         time.sleep(0.05)
-
 
 
 def start(nb_iterations=20):

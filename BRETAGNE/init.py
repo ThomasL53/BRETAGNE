@@ -7,7 +7,6 @@ from yaspin.spinners import Spinners
 import BRETAGNE.utils.Sim_tools
 
 
-
 def create_subnet(name,lab,subnet_count,subnet_addr=None):
     eth=1
     name=name.lower()

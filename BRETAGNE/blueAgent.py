@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 tokens = {
 }
 
+#This fonction send network trafic via a CSV file to BRETAGNE-BOT on POE 
 def send_to_poe(csv_file): 
     response = ""
     client = PoeApi(tokens=tokens)
@@ -19,6 +20,7 @@ def send_to_poe(csv_file):
     print("")
     return response
 
+#This fonction send network trafic to BEDROCK directly on the prompt (for LLM whose doesn't support file)
 def send_to_bedrock_prompt(csv_file, model):
     brt = boto3.client("bedrock-runtime", region_name="us-west-2")
     with open(csv_file, 'r', encoding='utf-8') as file:
@@ -51,6 +53,7 @@ def send_to_bedrock_prompt(csv_file, model):
         print(f"ERROR: Can't invoke {modelId}. Reason: {e}")
         exit(1)
 
+#This fonction send network trafic via a CSV file to BEDROCK
 def send_to_bedrock(csv_file, model):
     if model == "mistral":
         modelId="mistral.mistral-large-2407-v1:0"
@@ -100,6 +103,7 @@ def send_to_bedrock(csv_file, model):
         print(f"ERROR: Can't invoke {modelId}. Reason: {e}")
         exit(1)
 
+#This fonction check the response of the LLM in order to block the traffic
 def check_response(rep):
     regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
     if 'yes' in rep.lower():
@@ -107,7 +111,8 @@ def check_response(rep):
         if ip:
             ip = ip.group() + "/32"
             BRETAGNE.utils.SDN_action.BlockTraffic(ip,"0.0.0.0/0")
-            
+
+#Deploy a autonomous Blue Agent on the specified network
 def run(network):
     pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
     csv_file = f"simu/shared/capture/ovs_{network.lower()}.csv"
