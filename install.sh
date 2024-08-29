@@ -10,18 +10,30 @@ sudo add-apt-repository -y ppa:katharaframework/kathara
 sudo apt update
 sudo apt install -y kathara
 
+#install docker
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+
 # Gérer Docker en tant qu'utilisateur non-root
 if ! getent group docker > /dev/null; then
     echo "Ajout du groupe Docker..."
     sudo groupadd docker
 else
     echo "Le groupe Docker existe déjà."
-fi
-
-# Debug Docker si nécessaire
-if ! command -v docker &> /dev/null; then
-    echo "Installation de Docker..."
-    sudo apt install -y docker.io
 fi
 
 # Vérification de l'installation de Kathara
@@ -34,6 +46,7 @@ sudo apt install -y python3-pip
 pip3 install yaspin
 python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv
 python3 -m pip install "kathara"
+python3 -m pip install boto3
 
 # Télécharger et installer BRETAGNE
 echo "Clonage du dépôt BRETAGNE..."
