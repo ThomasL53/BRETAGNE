@@ -115,23 +115,20 @@ def generate_dataset(network):
 
         with open(dataset_file, mode='a', newline='') as file:
             writer = csv.writer(file)
-            
-            # Écrire l'en-tête si le fichier vient d'être créé
             if not file_exists:
                 writer.writerow(["Traffic", "Attack Flag", "Attacker IP", "Defender IP","Attack type"])
-            
-            # Ajouter une nouvelle ligne avec les données
             writer.writerow([csv_string, attack, attackerIP, defenderIP, attackname])
 
 #This function compute a score for evaluate different LLM
-def evaluateLLM(network,LLM):
+def evaluateLLM(LLM,network):
     if LLM not in ["mistral","llama","sonnet"]:
         print("LLM not supported! Please use mistral, llama or sonnet ")
         return 0
     else:
-        print(f"Evaluation of {LLM}. \n ctrl + c to stop the evaluation")
+        data_file= f"{LLM}_EVAL_{network.lower()}.csv"
+        print(f"generation of the evaluation matrix \'{data_file}\' \nctrl + c to stop the evaluation")
     i = 0
-    score = 138
+    score = 100
     regex = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
     while 1:
         pcap_file = f"simu/shared/capture/ovs_{network.lower()}.pcap"
@@ -143,8 +140,8 @@ def evaluateLLM(network,LLM):
             attackerIP,defenderIP,attackname=random_attack(network)
             print(attackerIP + " attack: " + defenderIP + " :" + attackname)
         else:
-            attackerIP=0
-            defenderIP=0
+            attackerIP="NA"
+            defenderIP="NA"
             attackname="no attack"
             print("no attack")
             BRETAGNE.Generate_traffic.start(1)
@@ -176,3 +173,12 @@ def evaluateLLM(network,LLM):
             score=score-5
         i=i+1
         print(f"score: {score} in {i} iteractions")
+        
+        if not os.path.isfile(data_file):
+            with open(data_file, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Attack Flag", "Attacker IP", "Attack type", "LLM response", "score"])
+
+        with open(data_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([attack, attackerIP, attackname, respon, score])

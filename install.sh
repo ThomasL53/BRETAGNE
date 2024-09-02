@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Script d'installation pour BRETAGNE
+#Installation script for BRETAGNE
 
-# Installer Kathara
-echo "Ajout du dépôt Kathara..."
+#install Kathara
+echo "Add Kathara depot..."
 sudo apt-get install software-properties-common -y
 sudo apt update
 sudo add-apt-repository -y ppa:katharaframework/kathara
@@ -28,38 +28,33 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
 
-# Gérer Docker en tant qu'utilisateur non-root
+# Manage Docker as non root user
 if ! getent group docker > /dev/null; then
-    echo "Ajout du groupe Docker..."
+    echo "Add Docker group..."
     sudo groupadd docker
-else
-    echo "Le groupe Docker existe déjà."
 fi
 
-# Vérification de l'installation de Kathara
-echo "Vérification de l'installation de Kathara..."
+echo "Kathara installation check..."
 kathara check
 
-# Installer les dépendances Python
-echo "Installation de pip et des dépendances Python..."
+# Install Python
+echo "Installation of pip and Python dependencies..."
 sudo apt install -y python3-pip
 pip3 install yaspin
 python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv
 python3 -m pip install "kathara"
 python3 -m pip install boto3
 
-# Télécharger et installer BRETAGNE
-echo "Clonage du dépôt BRETAGNE..."
+# Download and install BRETAGNE
+echo "Cloning the BRETAGNE depot..."
 git clone https://github.com/ThomasL53/BRETAGNE.git
-cd BRETAGNE || { echo "Échec de l'accès au répertoire BRETAGNE"; exit 1; }
+cd BRETAGNE || { echo "Access to BRETAGNE directory failed"; exit 1; }
 
-# Source du fichier env.sh
+# Add env.sh source to .bashrc
 if [ -f env.sh ]; then
-    echo "Sourcing env.sh..."
-    source env.sh
+    echo "source $(pwd)/env.sh" >> ~/.bashrc
 else
-    echo "Le fichier env.sh est introuvable."
+    echo "The env.sh file cannot be found."
 fi
 
-# Message final
-echo "Installation terminée. Pour plus d'aide, utilisez : bretagne -h"
+echo "Installation complete. For more help, use: bretagne -h"
