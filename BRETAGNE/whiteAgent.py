@@ -125,7 +125,7 @@ def evaluateLLM(LLM,network):
         print("LLM not supported! Please use mistral, llama or sonnet ")
         return 0
     else:
-        data_file= f"{LLM}_EVAL_{network.lower()}.csv"
+        data_file= f"{LLM}_evaluation_{network.lower()}.csv"
         print(f"generation of the evaluation matrix \'{data_file}\' \nctrl + c to stop the evaluation")
     i = 0
     score = 100
@@ -173,7 +173,7 @@ def evaluateLLM(LLM,network):
             score=score-5
         i=i+1
         print(f"score: {score} in {i} iteractions")
-        
+
         if not os.path.isfile(data_file):
             with open(data_file, mode='w', newline='') as file:
                 writer = csv.writer(file)
