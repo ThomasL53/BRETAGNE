@@ -53,4 +53,4 @@ git clone https://github.com/ThomasL53/BRETAGNE.git -q >> "$LOG_FILE" 2>&1
 # Add env to bashrc
 echo "alias bretagne=\"python3 $(pwd)/BRETAGNE/bretagne.py\"" >> ~/.bashrc
 source ~/.bashrc
-echo "Installation complete. For more help, use: bretagne -h" | tee -a "$LOG_FILE"
+echo "Installation complete. Restart your compture. For more help, use: bretagne -h" | tee -a "$LOG_FILE"

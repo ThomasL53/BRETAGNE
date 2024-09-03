@@ -1,6 +1,6 @@
 # BRETAGNE ( Building a Reproducible and Efficient Training AI Gym for Network Environments )
 <p align="center">
-	<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTswnKnRyT66EAWPeL_jRgceNbkJOuxkppM5QNCwwZGkNLgzmwArWHOjEgbbvw1-5dj954&usqp=CAU"/>  
+	<img src="img/topology.png"/>  
 </p>
 
 [![BRETAGNE 1.0](https://img.shields.io/badge/BRETAGNE-1.0-white.svg)](https://github.com/ThomasL53/BRETAGNE)
