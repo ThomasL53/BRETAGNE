@@ -73,10 +73,10 @@ The blue agent used by BRETAGNE can also be used with POE with a special bot bas
 To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
 
 ### Install POE API
-
-`pip3 install poe-api-wrapper`
-
-`pip3 install ballyregan`
+```shell
+pip3 install poe-api-wrapper
+pip3 install ballyregan
+```
 
 ### Getting your token
 Sign in at https://poe.com/
