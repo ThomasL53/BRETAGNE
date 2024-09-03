@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Installation script for BRETAGNE
-LOG_FILE="/temp/InstallBRETAGNE.log"
+LOG_FILE="/tmp/InstallBRETAGNE.log"
 touch "$LOG_FILE"
 
 #Install docker
