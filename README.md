@@ -26,44 +26,47 @@
 
 
 ## Installation
-1.To install bretagne, start by downloading the install.sh script: https://github.com/ThomasL53/BRETAGNE/blob/main/install.sh
+1. To install bretagne, start by downloading the install.sh script: https://github.com/ThomasL53/BRETAGNE/blob/main/install.sh
 
-2.Move your file to your home directory and give it installation rights:
+2. Move your file to your home directory and give it installation rights:
 ```shell
 sudo chmod +x install.sh
 ```
-3.Run the installation script (This may take some time depending on your internet connection)
+3. Run the installation script (This may take some time depending on your internet connection). If an error occurs, refer to /tmp/InstallBretagne.log
 ```shell
 ./install.sh
 ```
-4.Reboot your computer or close your terminal to finalize installation
+4. Reboot your computer or close your terminal to finalize installation
 
-5.Don't forget to install AWS CLI and configure your login with 'AWS configure' to use the blue agent.
+5. Don't forget to install AWS CLI and configure your login with 'AWS configure' to use the blue agent.
+
+6. Please note that the initial start-up of the simulation may take some time, depending on the images already present on your machine. 
 
 ## Example of use
 Starting a simulation with metasploit on the Operator Network (ON) and on the network Restricted Zone A (RA):
-
-`bretagne --start --metasploit ON RA`
-
+```shell
+bretagne --start --metasploit ON RA
+```
 Open a terminal on pc_ra1:
-
-`bretagne --control pc_ra1`
-
+```shell
+bretagne --control pc_ra1
+```
 Observe traffic on the Operator Network (ON):
-
-`bretagne --monitor ON`
-
+```shell
+bretagne --monitor ON
+```
 Generating user traffic on the network:
-
-`bretagne --generate_traffic 10`
-
+```shell
+bretagne --generate_traffic 10
+```
 Deploy a blue agent on the Operator Network (ON):
-
-`bretagne --BlueAgent ON`
-
+```shell
+bretagne --BlueAgent ON
+```
 Stop the simulation:
-
-`bretagne --stop`
+```shell
+bretagne --stop
+```
 
 ## Using the blue agent with POE (not recommended) 
 The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
