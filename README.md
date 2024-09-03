@@ -2,7 +2,7 @@
  
 BRETAGNE ( Building a Reproducible and Efficient Training AI Gym for Network Environments ), is a network simulation environment designed to serve as a training ground for autonomous defense agents using hybrid AI models in simulations. The platform integrates docker, a lightweight virtualization technology orchestrated by Kathara with widely used network protocols such as BGP, OSPF, HTTP, SSH and others to simulate production-like environments. We present a multi-agent architecture involving blue, red, green, and white agents, designed to create dynamic, communicative environments for training purposes. Overall, the BRETAGNE framework offers a realistic and scalable solution for the training and deployment of autonomous agents in operational networks.
 
-![Preview](https://upload.wikimedia.org/wikipedia/commons/2/29/Flag_of_Brittany_%28Gwenn_ha_du%29.svg)
+![Preview](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTswnKnRyT66EAWPeL_jRgceNbkJOuxkppM5QNCwwZGkNLgzmwArWHOjEgbbvw1-5dj954&usqp=CAU)
 
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/release/python-31013/)
