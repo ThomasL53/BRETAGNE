@@ -1,89 +1,43 @@
-# BRETAGNE ( Building a Reproducible and Efficient Training AI Gym for Network Environments ) 
-Scenario simulation used for cage challenge 4 with Kathara
+# BRETAGNE
+ 
+BRETAGNE ( Building a Reproducible and Efficient Training AI Gym for Network Environments ), is a network simulation environment designed to serve as a training ground for autonomous defense agents using hybrid AI models in simulations. The platform integrates docker, a lightweight virtualization technology orchestrated by Kathara with widely used network protocols such as BGP, OSPF, HTTP, SSH and others to simulate production-like environments. We present a multi-agent architecture involving blue, red, green, and white agents, designed to create dynamic, communicative environments for training purposes. Overall, the BRETAGNE framework offers a realistic and scalable solution for the training and deployment of autonomous agents in operational networks.
+
+![Preview](https://upload.wikimedia.org/wikipedia/commons/2/29/Flag_of_Brittany_%28Gwenn_ha_du%29.svg)
 
 
-![Topology created with Kathara](topology.png)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/release/python-31013/)
 
-# Install kathara
-`sudo add-apt-repository ppa:katharaframework/kathara`
+## Key Features
 
-`sudo apt update`
+- **Realism**. Using docker to simulate an environment with real implementations.
 
-`sudo apt install kathara`
+- **Scalability**. Create your own network scenario quickly with built-in python functions.
 
-## Manage Docker as a non-root user
-`sudo add-apt-repository ppa:katharaframework/kathara`
+- **Performant**. Using containerization to simulate large networks.
 
-`sudo groupadd docker`
+- **Autonomous traffic**. Green and red agent implementations for realistic, autonomous network traffic generation.
+  
+- **Interaction**. Each machine can be operated during simulation via its own terminal.
 
-`sudo usermod -aG docker $USER`
+- **Automatic monitoring**. Automatic monitoring of attacks using LLM and decision-making using SDM.
 
-`newgrp docker`
 
-### Debug Docker
-If docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory')) occurs.
+## Installation
+1.To install bretagne, start by downloading the install.sh script: https://github.com/ThomasL53/BRETAGNE/blob/main/install.sh
 
-`apt install docker.io`
+2.Move your file to your home directory and give it installation rights:
+```shell
+sudo chmod +x install.sh
+```
+3.Run the installation script (This may take some time depending on your internet connection)
+```shell
+./install.sh
+```
+4.Reboot your computer or close your terminal to finalize installation
 
-In ~/.docker/config.json change credsStore to credStore.
+5.Don't forget to install AWS CLI and configure your login with 'AWS configure' to use the blue agent.
 
-## check install:
-`kathara check`
-
-# Install Python dependency
-`sudo apt install python3-pip`
-
-`pip3 install yaspin`
-
-`python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv`
-
-`python3 -m pip install "kathara"`
-
-# Download and install BRETAGNE
-`git clone https://github.com/ThomasL53/BRETAGNE.git`
-
-go to BRETAGNE directory
-`cd BRETAGNE`
-
-Source or add to bashrc the env.sh file
-`source env.sh`
-
-For more help
-`bretagne -h`
-
-# Using the blue agent
-The blue agent used by BRETAGNE is based on the use of AWS bedrock with claude 3,5 Sonnet.
-To use the Blue Agent, you need to configure your AWS login and password.
-
-## Configure the AWS credentials
-execute:
-
-`aws configure`
-
-# Using the blue agent with POE (not recommended) 
-The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
-To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
-
-## Install POE API
-
-`pip3 install poe-api-wrapper`
-
-`pip3 install ballyregan`
-
-## How to get your Token
-
-### Getting p-b and p-lat cookies
-Sign in at https://poe.com/
-
-F12 for Devtools (Right-click + Inspect)
-- Chromium: Devtools > Application > Cookies > poe.com
-- Firefox: Devtools > Storage > Cookies
-- Safari: Devtools > Storage > Cookies
-
-Copy the values of `p-b` and `p-lat` cookies and paste on BRETAGNE/BlueAgent.py
-
-# Example of use
-
+## Example of use
 Starting a simulation with metasploit on the Operator Network (ON) and on the network Restricted Zone A (RA):
 
 `bretagne --start --metasploit ON RA`
@@ -108,7 +62,23 @@ Stop the simulation:
 
 `bretagne --stop`
 
+## Using the blue agent with POE (not recommended) 
+The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
+To use this agent, you need to create an account on POE (free).Then you have to get your private keys.
 
+### Install POE API
 
+`pip3 install poe-api-wrapper`
 
+`pip3 install ballyregan`
+
+### Getting your token
+Sign in at https://poe.com/
+
+F12 for Devtools (Right-click + Inspect)
+- Chromium: Devtools > Application > Cookies > poe.com
+- Firefox: Devtools > Storage > Cookies
+- Safari: Devtools > Storage > Cookies
+
+Copy the values of `p-b` and `p-lat` cookies and paste on BRETAGNE/BlueAgent.py
 
