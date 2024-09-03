@@ -10,7 +10,13 @@ import BRETAGNE.monitoring
 import BRETAGNE.utils.Sim_tools
 import BRETAGNE.whiteAgent
 
+RED = "\033[91m"
+RESET = "\033[0m"
+
 def main(args):
+    if "BRETAGNE" not in os.getcwd():
+        print(f"{RED}You must execute this command in the BRETAGNE working directory!{RESET}")
+        quit()
     start = False
     if not os.path.exists("simu") and args.start:
         os.makedirs("simu")
