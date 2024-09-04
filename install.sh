@@ -4,6 +4,12 @@
 LOG_FILE="/tmp/InstallBRETAGNE.log"
 touch "$LOG_FILE"
 
+#sudo acess verification
+if ! sudo ls > /dev/null 2>&1; then
+    echo "This user doesn't have access to the sudo group. Please add this user to the sudo group"
+    exit
+fi
+
 #Install docker
 echo "Install Docker..." | tee -a "$LOG_FILE"
 sudo apt-get update -qq >> "$LOG_FILE" 2>&1
