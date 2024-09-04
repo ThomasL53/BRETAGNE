@@ -76,7 +76,7 @@ The default network is that used in Cage Challenge 4. The network consists of tw
 by a traditional carrier network (ON). In addition, a corporate network (CN) is connected to the same operator.The subnetworks used in the simulation are specified on the schematic switch.
 
 <p align="center">
-	<img src="img/Topo.png"  width=200%/>  
+	<img src="img/Topology.png"  width=200%/>  
 </p>
 
 - **The routers**. Utilize FRR 9.0.1 and it's name fw_'NETWORK name' (exemple: for the RA network the router is fw_ra)
