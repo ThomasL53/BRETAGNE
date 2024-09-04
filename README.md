@@ -67,6 +67,23 @@ Stop the simulation:
 ```shell
 bretagne --stop
 ```
+For more help:
+```shell
+bretagne -h
+```
+## Default topology
+The default network is that used in Cage Challenge 4. The network consists of two theater networks, shown as ’A’ and ’B’ and a metropolitan network, shown as ’C’, interconnected
+by a traditional carrier network (ON). In addition, a corporate network (CN) is connected to the same operator.The subnetworks used in the simulation are specified on the schematic switch.
+
+<p align="center">
+	<img src="img/Topo.png"  width=200%/>  
+</p>
+
+- **The routers**. Utilize FRR 9.0.1 and it's name fw_'NETWORK name' (exemple: for the RA network the router is fw_ra)
+- **The switches**. Employ Open vSwitch 3.0.1 and it's name ovs_'NETWORK name' (exemple: for the OFN network the switch is ovs_ofn). They are all connected to the SDN controller via a common control plane.
+- **The hosts**. Are randomly generated between 3 and 10 on each subnetwork. The are are based on a Linux kernel 6.8.0-39 and it's name pc'x'_'NETWORK name' (exemple: for the DMZ network the host 1 is pc1_dmz)
+- **The server**. Are randomly generated between 1 and 6 on each subnetwork. The are are based on a Linux kernel 6.8.0-39 and it's name srv'x'_'NETWORK name' (exemple: for the RB network the server 3 is srv3_dmz)
+- **The SDN controler**. Is based on Floodlight 1.2. It is accessible via the URL:http://localhost:8080/ui/pages/index.html. It's name 'controller'
 
 ## Using the blue agent with POE (not recommended) 
 The blue agent used by BRETAGNE can also be used with POE with a special bot based on the use of GPT-4o-mini.
