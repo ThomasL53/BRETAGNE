@@ -10,20 +10,49 @@ if ! sudo ls > /dev/null 2>&1; then
     exit
 fi
 
-#Install docker
-echo "Install Docker..." | tee -a "$LOG_FILE"
-sudo apt-get update -qq >> "$LOG_FILE" 2>&1
-sudo apt-get install ca-certificates curl -qq >> "$LOG_FILE" 2>&1
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list >> "$LOG_FILE" 2>&1
-sudo apt-get update -qq >> "$LOG_FILE" 2>&1
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+#Distribution check
+if [[ -f /etc/debian_version ]]; then
+    if grep -q "Ubuntu" /etc/os-release; then
+        ENV="Ubuntu"
+    else
+        ENV="Debian"
+    fi
+else
+    echo "Please use Ubuntu or Debian"
+fi
+
+if [ "$ENV" = "Ubuntu" ]; then
+  #Install docker
+  echo "Install Docker..." | tee -a "$LOG_FILE"
+  sudo apt-get update -qq >> "$LOG_FILE" 2>&1
+  sudo apt-get install ca-certificates curl -qq >> "$LOG_FILE" 2>&1
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+  # Add the repository to Apt sources:
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list >> "$LOG_FILE" 2>&1
+  sudo apt-get update -qq >> "$LOG_FILE" 2>&1
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+else
+  # Add Docker's official GPG key:
+  echo "Install Docker..." | tee -a "$LOG_FILE"
+  sudo apt-get update -qq >> "$LOG_FILE" 2>&1
+  sudo apt-get install ca-certificates curl -qq >> "$LOG_FILE" 2>&1
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+  # Add the repository to Apt sources:
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >> "$LOG_FILE" 2>&1
+  sudo apt-get update -qq >> "$LOG_FILE" 2>&1
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+fi
 
 # Manage Docker as non root user
 if ! getent group docker > /dev/null; then
