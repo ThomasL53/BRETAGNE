@@ -37,10 +37,10 @@ sudo apt-get install docker.io -qq >> "$LOG_FILE" 2>&1
 
 # Install Kathara
 if [[ "$DIST" == "ubuntu" ]]; then
-echo "Add Kathara depot..." | tee -a "$LOG_FILE"
-sudo apt-get install software-properties-common -yqq >> "$LOG_FILE" 2>&1
-sudo apt update -qq >> "$LOG_FILE" 2>&1
-sudo add-apt-repository ppa:katharaframework/kathara -sy >> "$LOG_FILE" 2>&1
+  echo "Add Kathara depot..." | tee -a "$LOG_FILE"
+  sudo apt-get install software-properties-common -yqq >> "$LOG_FILE" 2>&1
+  sudo apt update -qq >> "$LOG_FILE" 2>&1
+  sudo add-apt-repository ppa:katharaframework/kathara -sy >> "$LOG_FILE" 2>&1
 
 elif [[ "$DIST" == "11" ]]; then
   wget -qO - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x21805a48e6cbba6b991abe76646193862b759810" | sudo gpg --dearmor -o /usr/share/keyrings/ppa-kathara-archive-keyring.gpg >> "$LOG_FILE" 2>&1
