@@ -51,7 +51,7 @@ elif [[ "$DIST" == "12" ]]; then
   wget -qO - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x21805a48e6cbba6b991abe76646193862b759810" | sudo gpg --dearmor -o /usr/share/keyrings/ppa-kathara-archive-keyring.gpg >> "$LOG_FILE" 2>&1
   echo "deb [ signed-by=/usr/share/keyrings/ppa-kathara-archive-keyring.gpg ] http://ppa.launchpad.net/katharaframework/kathara/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
   echo "deb-src [ signed-by=/usr/share/keyrings/ppa-kathara-archive-keyring.gpg ] http://ppa.launchpad.net/katharaframework/kathara/ubuntu jammy main" | sudo tee -a /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
-elif [[ "$DIST" == "12" ]]; then
+elif [[ "$DIST" == "Kali" ]]; then
   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 21805A48E6CBBA6B991ABE76646193862B759810
   echo "deb http://ppa.launchpad.net/katharaframework/kathara/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
   echo "deb-src http://ppa.launchpad.net/katharaframework/kathara/ubuntu focal main" | sudo tee -a /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
@@ -71,12 +71,21 @@ echo "Kathara installation check..." | tee -a "$LOG_FILE"
 kathara check >> "$LOG_FILE" 2>&1
 
 # Install Python
-echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
-sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
-pip3 install yaspin -q --break-system-packages >> "$LOG_FILE" 2>&1
-python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv -q --break-system-packages >> "$LOG_FILE" 2>&1
-python3 -m pip install "kathara" -q --break-system-packages >> "$LOG_FILE" 2>&1
-python3 -m pip install boto3 -q --break-system-packages >> "$LOG_FILE" 2>&1
+if [[ "$DIST" == "11" ]]; then
+  echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
+  sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
+  pip3 install yaspin -q --break-system-packages >> "$LOG_FILE" 2>&1
+  python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv -q --break-system-packages >> "$LOG_FILE" 2>&1
+  python3 -m pip install "kathara" -q --break-system-packages >> "$LOG_FILE" 2>&1
+  python3 -m pip install boto3 -q --break-system-packages >> "$LOG_FILE" 2>&1
+else
+  echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
+  sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
+  pip3 install yaspin -q --break-system-packages >> "$LOG_FILE" 2>&1
+  python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv -q >> "$LOG_FILE" 2>&1
+  python3 -m pip install "kathara" -q >> "$LOG_FILE" 2>&1
+  python3 -m pip install boto3 -q >> "$LOG_FILE" 2>&1
+fi
 
 # Download and install BRETAGNE
 echo "Cloning the BRETAGNE depot..." | tee -a "$LOG_FILE"
