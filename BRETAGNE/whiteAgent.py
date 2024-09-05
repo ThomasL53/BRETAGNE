@@ -157,28 +157,36 @@ def evaluateLLM(LLM,network):
         respon = str(BRETAGNE.blueAgent.send_to_bedrock(csv_file,LLM)).lower()
         if attack == 0 and "no" in respon:
             score=score+5
+            analyse="OK +5"
         elif attack == 1 and "no" in respon:
             score=score-1
+            analyse="LLM missed an attack -1"
         elif attack == 0 and re.search(regex,respon):
             score=score-5
+            analyse="False positive -5"
         elif attack == 1 and re.search(regex,respon) and not attackerIP in respon:
             score=score-3
+            analyse="Bad IP attack -3"
         elif attack == 1 and attackerIP in respon:
             score=score+5
+            analyse="OK +5"
         elif attack == 1 and "yes" and not re.search(regex,respon):
             score=score+1
+            analyse="attack detected but no IP"
         elif attack == 1 and not "yes" and not re.search(regex,respon):
             score=score+1
+            analyse="attack detected but no IP"
         elif attack == 0 and "yes" in respon:
             score=score-5
+            analyse="False positive -5"
         i=i+1
         print(f"score: {score} in {i} iteractions")
 
         if not os.path.isfile(data_file):
             with open(data_file, mode='w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(["Attack Flag", "Attacker IP", "Attack type", "LLM response", "score"])
+                writer.writerow(["Attack Flag", "Attacker IP", "Attack type", "LLM response", "score", "analyse"])
 
         with open(data_file, mode='a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([attack, attackerIP, attackname, respon, score])
+            writer.writerow([attack, attackerIP, attackname, respon, score, analyse])

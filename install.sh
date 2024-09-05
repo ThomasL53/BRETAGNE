@@ -35,7 +35,7 @@ if [ "$ENV" = "Ubuntu" ]; then
     $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
     sudo tee /etc/apt/sources.list.d/docker.list >> "$LOG_FILE" 2>&1
   sudo apt-get update -qq >> "$LOG_FILE" 2>&1
-  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+  sudo apt-get install docker-ce docker-ce-cli containerd.io -yqq >> "$LOG_FILE" 2>&1
 else
   # Add Docker's official GPG key:
   echo "Install Docker..." | tee -a "$LOG_FILE"
@@ -54,13 +54,6 @@ else
   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
 fi
 
-# Manage Docker as non root user
-if ! getent group docker > /dev/null; then
-    echo "Add Docker group..." | tee -a "$LOG_FILE"
-    sudo groupadd docker
-fi
-sudo usermod -aG docker ${USER} >> "$LOG_FILE" 2>&1
-newgrp docker >> "$LOG_FILE" 2>&1
 # Install Kathara
 echo "Add Kathara depot..." | tee -a "$LOG_FILE"
 sudo apt-get install software-properties-common -yqq >> "$LOG_FILE" 2>&1
@@ -84,6 +77,10 @@ python3 -m pip install boto3 -q --break-system-packages >> "$LOG_FILE" 2>&1
 # Download and install BRETAGNE
 echo "Cloning the BRETAGNE depot..." | tee -a "$LOG_FILE"
 git clone https://github.com/ThomasL53/BRETAGNE.git -q >> "$LOG_FILE" 2>&1
+
+# Manage Docker as non root user
+sudo usermod -aG docker ${USER} >> "$LOG_FILE" 2>&1
+newgrp docker >> "$LOG_FILE" 2>&1
 
 # Add env to bashrc
 echo "alias bretagne=\"python3 $(pwd)/BRETAGNE/bretagne.py\"" >> ~/.bashrc
