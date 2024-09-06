@@ -31,9 +31,48 @@ fi
 
 #Install docker
 echo "Install Docker..." | tee -a "$LOG_FILE"
-sudo apt-get update -qq >> "$LOG_FILE" 2>&1
-sudo apt-get install docker.io -qq >> "$LOG_FILE" 2>&1
+if [[ "$DIST" == "ubuntu" ]]; then
+  for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+  # Add Docker's official GPG key:
+  sudo apt-get install ca-certificates curl -yqq >> "$LOG_FILE" 2>&1
+  sudo install -m 0755 -d /etc/apt/keyrings >> "$LOG_FILE" 2>&1
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  sudo chmod a+r /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  # Add the repository to Apt sources:
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 
+  sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
 
+elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
+  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  # Add Docker's official GPG key:
+  sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+  sudo apt-get install ca-certificates curl -yqq >> "$LOG_FILE" 2>&1
+  sudo install -m 0755 -d /etc/apt/keyrings >> "$LOG_FILE" 2>&1
+  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  sudo chmod a+r /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
+  # Add the repository to Apt sources:
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+
+ elif [[ "$DIST" == "Kali" ]]; then
+  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  # Add Docker's official GPG key:
+  sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+  echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list >> "$LOG_FILE" 2>&1
+  curl -fsSL https://download.docker.com/linux/debian/gpg |
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg >> "$LOG_FILE" 2>&1
+  sudo apt update -yqq >> "$LOG_FILE" 2>&1
+  sudo apt install -yqq docker-ce docker-ce-cli containerd.io >> "$LOG_FILE" 2>&1
 
 # Install Kathara
 if [[ "$DIST" == "ubuntu" ]]; then
@@ -70,21 +109,20 @@ sudo apt install kathara -yqq >> "$LOG_FILE" 2>&1
 echo "Kathara installation check..." | tee -a "$LOG_FILE"
 kathara check >> "$LOG_FILE" 2>&1
 
-# Install Python
+# Install Python dependencies
 if [[ "$DIST" == "11" ]]; then
+  echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
+  sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
+  pip3 install yaspin >> "$LOG_FILE" 2>&1
+  python3 -m pip install "kathara" >> "$LOG_FILE" 2>&1
+  python3 -m pip install boto3 >> "$LOG_FILE" 2>&1
+else
   echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
   sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
   pip3 install yaspin -q --break-system-packages >> "$LOG_FILE" 2>&1
   python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv -q --break-system-packages >> "$LOG_FILE" 2>&1
   python3 -m pip install "kathara" -q --break-system-packages >> "$LOG_FILE" 2>&1
   python3 -m pip install boto3 -q --break-system-packages >> "$LOG_FILE" 2>&1
-else
-  echo "Installation of pip and Python dependencies..." | tee -a "$LOG_FILE"
-  sudo apt install python3-pip -yqq >> "$LOG_FILE" 2>&1
-  pip3 install yaspin -q --break-system-packages >> "$LOG_FILE" 2>&1
-  python3 -m pip install git+https://github.com/saghul/pyuv@master#egg=pyuv -q >> "$LOG_FILE" 2>&1
-  python3 -m pip install "kathara" -q >> "$LOG_FILE" 2>&1
-  python3 -m pip install boto3 -q >> "$LOG_FILE" 2>&1
 fi
 
 # Download and install BRETAGNE
