@@ -73,6 +73,7 @@ elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
   sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg >> "$LOG_FILE" 2>&1
   sudo apt update -yqq >> "$LOG_FILE" 2>&1
   sudo apt install -yqq docker-ce docker-ce-cli containerd.io >> "$LOG_FILE" 2>&1
+fi
 
 # Install Kathara
 if [[ "$DIST" == "ubuntu" ]]; then
