@@ -51,6 +51,7 @@ elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
   for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -yqq $pkg  >> "$LOG_FILE" 2>&1; done
   # Add Docker's official GPG key:
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
+   sudo apt-get install curl -yqq >> "$LOG_FILE" 2>&1
   sudo apt-get install ca-certificates curl -yqq >> "$LOG_FILE" 2>&1
   sudo install -m 0755 -d /etc/apt/keyrings >> "$LOG_FILE" 2>&1
   sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc >> "$LOG_FILE" 2>&1
@@ -61,9 +62,9 @@ elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
     $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
- sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
 
- elif [[ "$DIST" == "Kali" ]]; then
+elif [[ "$DIST" == "kali" ]]; then
   for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -yqq $pkg  >> "$LOG_FILE" 2>&1; done
   # Add Docker's official GPG key:
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
@@ -91,7 +92,7 @@ elif [[ "$DIST" == "12" ]]; then
   wget -qO - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x21805a48e6cbba6b991abe76646193862b759810" | sudo gpg --dearmor -o /usr/share/keyrings/ppa-kathara-archive-keyring.gpg >> "$LOG_FILE" 2>&1
   echo "deb [ signed-by=/usr/share/keyrings/ppa-kathara-archive-keyring.gpg ] http://ppa.launchpad.net/katharaframework/kathara/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
   echo "deb-src [ signed-by=/usr/share/keyrings/ppa-kathara-archive-keyring.gpg ] http://ppa.launchpad.net/katharaframework/kathara/ubuntu jammy main" | sudo tee -a /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
-elif [[ "$DIST" == "Kali" ]]; then
+elif [[ "$DIST" == "kali" ]]; then
   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 21805A48E6CBBA6B991ABE76646193862B759810
   echo "deb http://ppa.launchpad.net/katharaframework/kathara/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
   echo "deb-src http://ppa.launchpad.net/katharaframework/kathara/ubuntu focal main" | sudo tee -a /etc/apt/sources.list.d/kathara.list >> "$LOG_FILE" 2>&1
