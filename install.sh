@@ -32,7 +32,7 @@ fi
 #Install docker
 echo "Install Docker..." | tee -a "$LOG_FILE"
 if [[ "$DIST" == "ubuntu" ]]; then
-  for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove -yqq $pkg  >> "$LOG_FILE" 2>&1; done
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
   # Add Docker's official GPG key:
   sudo apt-get install ca-certificates curl -yqq >> "$LOG_FILE" 2>&1
@@ -48,7 +48,7 @@ if [[ "$DIST" == "ubuntu" ]]; then
   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
 
 elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
-  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -yqq $pkg  >> "$LOG_FILE" 2>&1; done
   # Add Docker's official GPG key:
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
   sudo apt-get install ca-certificates curl -yqq >> "$LOG_FILE" 2>&1
@@ -64,7 +64,7 @@ elif [[ "$DIST" == "11" || "$DIST" == "12" ]]; then
  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -yqq >> "$LOG_FILE" 2>&1
 
  elif [[ "$DIST" == "Kali" ]]; then
-  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -yqq $pkg  >> "$LOG_FILE" 2>&1; done
   # Add Docker's official GPG key:
   sudo apt-get update -yqq >> "$LOG_FILE" 2>&1
   echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | \
@@ -79,7 +79,7 @@ fi
 if [[ "$DIST" == "ubuntu" ]]; then
   echo "Add Kathara depot..." | tee -a "$LOG_FILE"
   sudo apt-get install software-properties-common -yqq >> "$LOG_FILE" 2>&1
-  sudo apt update -qq >> "$LOG_FILE" 2>&1
+  sudo apt update -yqq >> "$LOG_FILE" 2>&1
   sudo add-apt-repository ppa:katharaframework/kathara -sy >> "$LOG_FILE" 2>&1
 
 elif [[ "$DIST" == "11" ]]; then
