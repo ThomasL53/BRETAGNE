@@ -10,9 +10,17 @@ import re
 import csv
 import BRETAGNE.blueAgent
 import BRETAGNE.utils.Sim_tools
+import script.CountScore
+import signal
+from functools import partial
 
 directory = "simu"
 ip_srvlist = []
+
+def signal_handler(sig, frame, LLM, data_file):
+    print(f"results for {LLM}:")
+    script.CountScore.count(data_file)
+    exit(0)
 
 #Exec a command on the specified node without Katahra
 def exec_command(hostname,command, timeout=0):
@@ -126,6 +134,8 @@ def evaluateLLM(LLM,network):
         return 0
     else:
         data_file= f"{LLM}_evaluation_{network.lower()}.csv"
+        handler = partial(signal_handler, LLM=LLM, data_file=data_file)
+        signal.signal(signal.SIGINT, handler)
         print(f"generation of the evaluation matrix \'{data_file}\' \nctrl + c to stop the evaluation")
     i = 0
     score = 100
