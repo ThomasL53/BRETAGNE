@@ -10,6 +10,7 @@ def count(fichier_csv):
             FalsePositive = 0
             Missedattack = 0
             BadAddress = 0
+            OutOfContext = 0
             
             for ligne in lecteur:
                 analyse = ligne.get('analyse')
@@ -21,11 +22,14 @@ def count(fichier_csv):
                     Missedattack += 1
                 elif analyse == 'Bad IP attack -3':
                     BadAddress += 1
+                elif analyse == 'Out of context':
+                    OutOfContext += 1
                 total += 1
             print(f"{OK} OK on {total} requests: {OK/total*100:.2f}%")
             print(f"{FalsePositive} false positive on {total} requests: {FalsePositive/total*100:.2f}%")
             print(f"{Missedattack} undetected attacks on {total} requests: {Missedattack/total*100:.2f}%")
             print(f"{BadAddress} wrong address detected on {total} requests: {BadAddress/total*100:.2f}%")
+            print(f"{OutOfContext}  Out of context on {total} requests: {OutOfContext/total*100:.2f}%")
 
     except FileNotFoundError:
         print("The specified file cannot be found.")

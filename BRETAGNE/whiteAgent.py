@@ -132,6 +132,7 @@ def evaluateLLM(LLM,network):
     if LLM not in ["mistral","llama","sonnet"]:
         print("LLM not supported! Please use mistral, llama or sonnet ")
         return 0
+        #data_file= f"{LLM}_evaluation_{network.lower()}.csv"
     else:
         data_file= f"{LLM}_evaluation_{network.lower()}.csv"
         handler = partial(signal_handler, LLM=LLM, data_file=data_file)
@@ -189,6 +190,8 @@ def evaluateLLM(LLM,network):
         elif attack == 0 and "yes" in respon:
             score=score-5
             analyse="False positive -5"
+        else:
+            analyse="Out of context"
         i=i+1
         print(f"score: {score} in {i} iteractions")
 
