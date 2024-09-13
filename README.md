@@ -26,6 +26,12 @@
 
 
 ## Installation
+Bretagne is available for:
+[![Ubuntu 24.04](https://img.shields.io/badge/Ubuntu-24.04-orange.svg)](https://ubuntu.com/blog/tag/ubuntu-24-04-lts)
+[![Debian 12](https://img.shields.io/badge/Debian-12-red.svg)](https://www.debian.org/releases/bookworm/)
+[![Kali Linux](https://img.shields.io/badge/Kali-linux-blue.svg)](https://www.kali.org/)
+[![Debian 11](https://img.shields.io/badge/Debian-11-red.svg)](https://www.debian.org/releases/bullseye/)
+
 1. To install bretagne, start by downloading the install.sh script: https://github.com/ThomasL53/BRETAGNE/blob/main/install.sh
 
 2. Move your file to your home directory and give it installation rights:
