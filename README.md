@@ -49,25 +49,25 @@ sudo chmod +x install.sh
 6. Please note that the initial start-up of the simulation may take some time, depending on the images already present on your machine. 
 
 ## Example of use
-Starting a simulation with metasploit on the Operator Network (ON) and on the network Restricted Zone A (RA):
+Starting a simulation with metasploit on the network Restricted Zone A (RA):
 ```shell
-bretagne --start --metasploit ON RA
+bretagne --start --metasploit RA
 ```
 Open a terminal on pc_ra1:
 ```shell
 bretagne --control pc_ra1
 ```
-Observe traffic on the Operator Network (ON):
+Observe traffic on the Restricted Zone A (RA):
 ```shell
-bretagne --monitor ON
+bretagne --monitor RA
 ```
 Generating user traffic on the network:
 ```shell
 bretagne --generate_traffic 10
 ```
-Deploy a blue agent on the Operator Network (ON):
+Deploy a blue agent on the Restricted Zone A (RA):
 ```shell
-bretagne --BlueAgent ON
+bretagne --BlueAgent RA
 ```
 Stop the simulation:
 ```shell
