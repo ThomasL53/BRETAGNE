@@ -127,6 +127,9 @@ else
   python3 -m pip install boto3 -q --break-system-packages >> "$LOG_FILE" 2>&1
 fi
 
+#Download and install tshark
+sudo apt install tshark -yqq >> "$LOG_FILE" 2>&1
+
 # Download and install BRETAGNE
 echo "Cloning the BRETAGNE depot..." | tee -a "$LOG_FILE"
 git clone https://github.com/ThomasL53/BRETAGNE.git -q >> "$LOG_FILE" 2>&1
