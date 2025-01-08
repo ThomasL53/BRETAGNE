@@ -79,11 +79,13 @@ def add_srv_service_on(SRV,lab):
 def add_SDN_switch(name,subnet_count,lab):
     OvS=lab.new_machine(f"ovs_{name}", **{"image":"thomasl53/bretagne_ovs:1.0"})
     lab.connect_machine_to_link(OvS.name,"SDN")
+    lab.connect_machine_to_link(OvS.name,f"{name.upper()}") #connection to the gateway on Kathara network 'RA'
     lab.create_file_from_list(
         [
             f"ip addr add 20.0.1.{subnet_count}/24 dev eth0",
             "/usr/share/openvswitch/scripts/ovs-ctl --system-id=random start",
             "ovs-vsctl add-br s1",
+            f"ovs-vsctl add-port s1 eth1",
             "ovs-vsctl set-controller s1 tcp:20.0.1.254:6653"
         ],
         f"ovs_{name}.startup"

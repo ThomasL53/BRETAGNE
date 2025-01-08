@@ -8,7 +8,7 @@ import BRETAGNE.utils.Sim_tools
 
 #This function creates a subnet with 3 to 10 hosts and 1 to 6 servers connected via an OpenVswitch. 
 def create_subnet(name,lab,subnet_count,subnet_addr=None):
-    eth=1
+    eth=2 #Start at port 2 because eth0 is for SDN controler and eth1 is for the gateway
     name=name.lower()
     #choice of number of subnet hosts
     nb_PC=random.randint(3, 10)
