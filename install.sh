@@ -80,7 +80,7 @@ fi
 if [[ "$DIST" == "ubuntu" ]]; then
   echo "Add Kathara depot..." | tee -a "$LOG_FILE"
   sudo apt-get install software-properties-common -yqq >> "$LOG_FILE" 2>&1
-  sudo apt update -yqq >> "$LOG_FILE" 2>&1https://teams.microsoft.com/v2/?meetingjoin=true#/l/meetup-join/19:meeting_ZjA1YmFiY2MtZGZjMy00MGZiLWJiZjgtZTJlMTQ4NzhkYmU3@thread.v2/0?context=%7b%22Tid%22%3a%226e603289-5e46-4e26-ac7c-03a85420a9a5%22%2c%22Oid%22%3a%22808ab636-2e2c-41fc-96c9-a8656daf0c5b%22%7d&anon=true&deeplinkId=66477205-9e61-4700-b14b-24216e869f72
+  sudo apt update -yqq >> "$LOG_FILE" 2>&1
   sudo add-apt-repository ppa:katharaframework/kathara -sy >> "$LOG_FILE" 2>&1
 
 elif [[ "$DIST" == "11" ]]; then
